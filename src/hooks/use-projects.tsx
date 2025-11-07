@@ -19,19 +19,16 @@ export const useProject = ({ projectId }: Props) => {
         body: undefined,
       };
 
-      try {
-        const response = await fetch(url, options);
-        const data = (await response.json()) as Project;
-        setProject(data);
-        setIsLoading(false);
-        setHasFailed(false);
-      } catch (error) {
-        console.error(error);
-      }
+      const response = await fetch(url, options);
+      const data = (await response.json()) as Project;
+      setProject(data);
+      setIsLoading(false);
+      setHasFailed(false);
     };
 
     fetchProject().catch(error => {
       console.error(error);
+      setIsLoading(false);
       setHasFailed(true);
     });
   }, [projectId]);

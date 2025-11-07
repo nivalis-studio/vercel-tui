@@ -5,6 +5,7 @@ import { useKeyboard } from '@opentui/react';
 import { useMemo, useState } from 'react';
 import { getTimeAgo } from '@/lib/time-ago';
 import theme from '@/theme/catppuccin.json' with { type: 'json' };
+import { DeploymentDetails } from './deployment-details';
 import type { Deployment, Deployments, Project } from '@/types/vercel-sdk';
 
 type Props = {
@@ -12,6 +13,7 @@ type Props = {
   deployments: Deployments;
   teamId: string;
   currentBranch?: string;
+  refresh: () => Promise<void>;
 };
 
 const getCreatedAt = (d: Deployment) => d.createdAt ?? d.created;
@@ -67,21 +69,22 @@ const columns: Array<Column> = [
   { label: 'URL', flex: 1 },
   { label: 'Branch', width: 18 },
   { label: 'Commit', width: 8 },
-];
+] as const;
 
 export const DeploymentsList = ({
   deployments,
   project,
   teamId,
   currentBranch,
+  refresh,
 }: Props) => {
   const [timeCol, statusCol, targetCol, , branchCol, commitCol] = columns as [
-    Column,
-    Column,
-    Column,
-    Column,
-    Column,
-    Column,
+    Column, // time
+    Column, // status
+    Column, // target
+    Column, // url
+    Column, // branch
+    Column, // commit
   ];
 
   const branches = useMemo(() => {
@@ -118,8 +121,18 @@ export const DeploymentsList = ({
   );
 
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [viewingDeployment, setViewingDeployment] = useState<
+    Deployment | undefined
+  >(undefined);
 
   useKeyboard(key => {
+    if (viewingDeployment) {
+      if (key.name === 'backspace') {
+        setViewingDeployment(undefined);
+      }
+      return;
+    }
+
     if (key.name === 'tab') {
       if (key.shift) {
         setSelectedBranchIndex(
@@ -136,11 +149,28 @@ export const DeploymentsList = ({
     } else if (key.name === 'return') {
       const selectedDeployment = sorted[selectedIndex];
       if (selectedDeployment) {
+        setViewingDeployment(selectedDeployment);
+      }
+    } else if (key.name === 'o') {
+      const selectedDeployment = sorted[selectedIndex];
+      if (selectedDeployment) {
         const url = `https://vercel.com/${teamId}/${project.name}/${selectedDeployment.uid}`;
         exec(`open "${url}"`);
       }
+    } else if (key.name === 'r') {
+      refresh().catch(err => console.error(err));
     }
   });
+
+  if (viewingDeployment) {
+    return (
+      <DeploymentDetails
+        deployment={viewingDeployment}
+        project={project}
+        teamId={teamId}
+      />
+    );
+  }
 
   return (
     <box flexDirection='column' flexGrow={1} padding={1}>
@@ -190,7 +220,6 @@ export const DeploymentsList = ({
           </box>
         </box>
 
-        {/* Rows */}
         <box flexDirection='column' gap={0} paddingLeft={1} paddingRight={1}>
           {sorted.map((d, index) => {
             const createdAt = getCreatedAt(d);

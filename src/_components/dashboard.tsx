@@ -15,7 +15,11 @@ type Props = {
 
 export const Dashboard = ({ teamId, projectId, currentBranch }: Props) => {
   const { hasFailed: hasFailedProject, project } = useProject({ projectId });
-  const { hasFailed: hasFailedDeployments, deployments } = useDeployments({
+  const {
+    hasFailed: hasFailedDeployments,
+    deployments,
+    refresh,
+  } = useDeployments({
     teamId,
     projectId,
   });
@@ -37,6 +41,7 @@ export const Dashboard = ({ teamId, projectId, currentBranch }: Props) => {
       currentBranch={currentBranch}
       deployments={deployments}
       project={project}
+      refresh={refresh}
       teamId={teamId}
     />
   );
