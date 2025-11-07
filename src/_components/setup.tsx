@@ -1,6 +1,6 @@
 import { TextAttributes } from '@opentui/core';
 import { useKeyboard } from '@opentui/react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { saveConfig } from '@/lib/config';
 
 type Props = {
@@ -8,30 +8,39 @@ type Props = {
 };
 
 export const Setup = ({ onComplete }: Props) => {
-  const [token, setToken] = useState('');
   const [error, setError] = useState('');
+  const textareaRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  }, []);
+
+  const handleSave = () => {
+    const textarea = textareaRef.current;
+    if (!textarea) {
+      return;
+    }
+
+    const token =
+      textarea.editBuffer?.getText?.() || textarea.getText?.() || '';
+    if (token.trim().length === 0) {
+      setError('Token cannot be empty');
+      return;
+    }
+
+    try {
+      saveConfig({ bearerToken: token.trim() });
+      onComplete();
+    } catch {
+      setError('Failed to save configuration');
+    }
+  };
 
   useKeyboard(key => {
-    if (key.name === 'return') {
-      if (token.trim().length === 0) {
-        setError('Token cannot be empty');
-        return;
-      }
-
-      try {
-        saveConfig({ bearerToken: token.trim() });
-        onComplete();
-      } catch {
-        setError('Failed to save configuration');
-      }
-    } else if (key.name === 'backspace') {
-      setToken(prev => prev.slice(0, -1));
-      setError('');
-    } else if (key.name === 'escape') {
-      process.exit(0);
-    } else if (key.sequence && key.sequence.length === 1) {
-      setToken(prev => prev + key.sequence);
-      setError('');
+    if (key.name === 'escape') {
+      handleSave();
     }
   });
 
@@ -80,7 +89,10 @@ export const Setup = ({ onComplete }: Props) => {
               paddingRight={1}
               style={{ backgroundColor: '#1f2335' }}
             >
-              <text>{token || ' '}</text>
+              <textarea
+                placeholder='Paste your Vercel token here...'
+                ref={textareaRef}
+              />
             </box>
           </box>
 
@@ -92,7 +104,7 @@ export const Setup = ({ onComplete }: Props) => {
 
           <box flexDirection='column' marginTop={2}>
             <text attributes={TextAttributes.DIM}>
-              Press ENTER to save | ESC to quit
+              Press ESC when done (token auto-saves) | Ctrl+C to quit
             </text>
             <text attributes={TextAttributes.DIM}>
               Token will be saved to: ~/.config/vercel-tui/config.json
