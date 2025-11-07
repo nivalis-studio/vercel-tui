@@ -1,4 +1,4 @@
-# Vercel TUI
+# lazyvercel
 
 A beautiful Terminal User Interface (TUI) for managing Vercel deployments, built with Bun and OpenTUI.
 
@@ -14,13 +14,13 @@ A beautiful Terminal User Interface (TUI) for managing Vercel deployments, built
 ## Installation
 
 ```bash
-bunx @nivalis/lazyvercel
+bunx lazyvercel
 ```
 
 Or install globally with bun:
 
 ```bash
-bun install -g @nivalis/lazyvercel
+bun install -g lazyvercel
 ```
 
 And run with
@@ -49,7 +49,7 @@ For more information about Vercel API authentication, see the [official document
 Run the TUI from any Vercel project directory:
 
 ```bash
-bunx @nivalis/lazyvercel
+bunx lazyvercel
 ```
 
 The TUI will automatically detect your project from the `.vercel/project.json` file.

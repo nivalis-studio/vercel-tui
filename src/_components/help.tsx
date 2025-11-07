@@ -4,7 +4,7 @@ export function HelpPanel() {
   return (
     <box flexDirection='column' flexGrow={1} padding={1}>
       <box alignItems='flex-end' justifyContent='flex-start' marginBottom={1}>
-        <ascii-font font='tiny' text='Nivalis Vercel TUI' />
+        <ascii-font font='tiny' text='lazyvercel' />
       </box>
 
       <box border flexDirection='column' flexGrow={1} title='Help'>
