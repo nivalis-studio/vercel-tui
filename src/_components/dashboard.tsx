@@ -31,5 +31,11 @@ export const Dashboard = ({ teamId, projectId }: Props) => {
     return <LoadingState project={project} />;
   }
 
-  return <DeploymentsList deployments={deployments} project={project} />;
+  return (
+    <DeploymentsList
+      deployments={deployments}
+      project={project}
+      teamId={teamId}
+    />
+  );
 };

@@ -1,4 +1,5 @@
 /** biome-ignore-all lint/style/noMagicNumbers: yay */
+import { exec } from 'node:child_process';
 import { TextAttributes } from '@opentui/core';
 import { useKeyboard } from '@opentui/react';
 import { useState } from 'react';
@@ -9,6 +10,7 @@ import type { Deployment, Deployments, Project } from '@/types/vercel-sdk';
 type Props = {
   project: Project;
   deployments: Deployments;
+  teamId: string;
 };
 
 const getCreatedAt = (d: Deployment) => d.createdAt ?? d.created;
@@ -66,7 +68,7 @@ const columns: Array<Column> = [
   { label: 'Commit', width: 8 },
 ];
 
-export const DeploymentsList = ({ deployments, project }: Props) => {
+export const DeploymentsList = ({ deployments, project, teamId }: Props) => {
   const [timeCol, statusCol, targetCol, , branchCol, commitCol] = columns as [
     Column,
     Column,
@@ -86,6 +88,12 @@ export const DeploymentsList = ({ deployments, project }: Props) => {
       setSelectedIndex(prev => Math.max(0, prev - 1));
     } else if (key.name === 'down') {
       setSelectedIndex(prev => Math.min(sorted.length - 1, prev + 1));
+    } else if (key.name === 'return') {
+      const selectedDeployment = sorted[selectedIndex];
+      if (selectedDeployment) {
+        const url = `https://vercel.com/${teamId}/${project.name}/${selectedDeployment.uid}`;
+        exec(`open "${url}"`);
+      }
     }
   });
 
