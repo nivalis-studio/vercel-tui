@@ -1,7 +1,7 @@
 import { exec } from 'node:child_process';
 import { TextAttributes } from '@opentui/core';
-import { useKeyboard } from '@opentui/react';
 import { useEffect, useState } from 'react';
+import { useDeploymentDetailsShortcuts } from '@/hooks/use-deployment-details-shortcuts';
 import {
   getBranch,
   getCommit,
@@ -70,11 +70,14 @@ export const DeploymentDetails = ({ deployment, project, teamId }: Props) => {
     fetchLogs().catch(console.error);
   }, [deployment.uid, deployment.readyState, deployment.state, teamId]);
 
-  useKeyboard(key => {
-    if (key.name === 'o') {
+  useDeploymentDetailsShortcuts({
+    onBack: () => {
+      // This is called from parent, so no-op here
+    },
+    onOpenBrowser: () => {
       const url = `https://vercel.com/${teamId}/${project.name}/${deployment.uid}`;
       exec(`open "${url}"`);
-    }
+    },
   });
 
   const buildLogs = logs.filter(

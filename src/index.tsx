@@ -1,7 +1,7 @@
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import { createCliRenderer } from '@opentui/core';
-import { createRoot, useKeyboard } from '@opentui/react';
+import { createRoot } from '@opentui/react';
 import { useState } from 'react';
 import { Dashboard } from '@/_components/dashboard';
 import { HelpPanel } from '@/_components/help';
@@ -13,6 +13,7 @@ import { Setup } from '@/_components/setup';
 import { hasConfig } from '@/lib/config';
 import theme from '@/theme/catppuccin.json' with { type: 'json' };
 import { resetVercelInstance } from '@/vercel';
+import { useShortcuts } from './hooks/use-shortcuts';
 
 const projectPath = fs.existsSync('.vercel/project.json')
   ? '.vercel/project.json'
@@ -36,28 +37,8 @@ const renderer = await createCliRenderer({
 });
 
 function App() {
-  const [showHelp, setShowHelp] = useState(false);
   const [isConfigured, setIsConfigured] = useState(hasConfig());
-
-  useKeyboard(key => {
-    if (key.name === '?') {
-      setShowHelp(prev => !prev);
-      return;
-    }
-
-    if (showHelp && key.name === 'escape') {
-      setShowHelp(false);
-      return;
-    }
-
-    if (key.ctrl && key.name === 'k') {
-      renderer?.console.toggle();
-    }
-
-    if (key.name === 'escape' || key.name === 'q') {
-      process.exit(0);
-    }
-  });
+  const { showHelp } = useShortcuts({ renderer });
 
   if (!isConfigured) {
     return (
