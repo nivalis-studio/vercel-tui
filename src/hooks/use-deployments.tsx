@@ -17,6 +17,7 @@ export const useDeployments = ({ teamId, projectId }: Props) => {
       const response = await vercel.deployments.getDeployments({
         teamId,
         projectId,
+        limit: 100,
       });
       setDeployments(response.deployments);
       setIsLoading(false);
