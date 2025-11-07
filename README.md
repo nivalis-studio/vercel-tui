@@ -80,7 +80,7 @@ The TUI will automatically detect your project from the `.vercel/project.json` f
 
 ```bash
 # Clone the repository
-git clone https://github.com/nivalis/lazyvercel.git
+git clone https://github.com/nivalis-studio/lazyvercel.git
 cd lazyvercel
 
 # Install dependencies
