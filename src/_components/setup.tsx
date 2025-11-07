@@ -9,6 +9,7 @@ type Props = {
 
 export const Setup = ({ onComplete }: Props) => {
   const [error, setError] = useState('');
+  // biome-ignore lint/suspicious/noExplicitAny: Okayish
   const textareaRef = useRef<any>(null);
 
   useEffect(() => {

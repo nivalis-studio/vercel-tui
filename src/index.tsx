@@ -16,9 +16,50 @@ import theme from '@/theme/catppuccin.json' with { type: 'json' };
 import { resetVercelInstance } from '@/vercel';
 import { useShortcuts } from './hooks/use-shortcuts';
 
-const projectPath = fs.existsSync('.vercel/project.json')
-  ? '.vercel/project.json'
-  : null;
+const PROJECT_CONFIG_PATH = '.vercel/project.json';
+
+type ProjectConfigState =
+  | { status: 'missing_path' }
+  | { status: 'missing_id' }
+  | { status: 'ready'; projectId: string; teamId: string }
+  | { status: 'error'; message: string };
+
+const readProjectConfig = (): ProjectConfigState => {
+  try {
+    const contents = fs.readFileSync(PROJECT_CONFIG_PATH, 'utf8');
+    const { projectId, orgId } = JSON.parse(contents) as {
+      projectId?: string;
+      orgId?: string;
+    };
+
+    if (projectId && orgId) {
+      return { status: 'ready', projectId, teamId: orgId };
+    }
+
+    return { status: 'missing_id' };
+  } catch (error) {
+    const err = error as NodeJS.ErrnoException;
+
+    if (err.code === 'ENOENT') {
+      return { status: 'missing_path' };
+    }
+
+    console.error('Failed to read project config:', error);
+    return { status: 'error', message: err.message };
+  }
+};
+
+function useProjectConfig() {
+  const [state, setState] = useState<ProjectConfigState>(() =>
+    readProjectConfig(),
+  );
+
+  const refresh = () => {
+    setState(readProjectConfig());
+  };
+
+  return { state, refresh };
+}
 
 const getCurrentBranch = (): string | undefined => {
   try {
@@ -39,6 +80,7 @@ const renderer = await createCliRenderer({
 
 function App() {
   const [isConfigured, setIsConfigured] = useState(hasConfig());
+  const { state: projectConfig, refresh: refreshProject } = useProjectConfig();
   const { showHelp } = useShortcuts({ renderer, enabled: isConfigured });
 
   if (!isConfigured) {
@@ -46,6 +88,7 @@ function App() {
       <Setup
         onComplete={() => {
           resetVercelInstance();
+          refreshProject();
           setIsConfigured(true);
         }}
       />
@@ -56,25 +99,23 @@ function App() {
     return <HelpPanel />;
   }
 
-  if (!projectPath) {
-    return <MissingProjectPath />;
+  switch (projectConfig.status) {
+    case 'missing_path':
+      return <MissingProjectPath />;
+    case 'missing_id':
+    case 'error':
+      return <MissingProjectId />;
+    case 'ready':
+      return (
+        <Dashboard
+          currentBranch={currentBranch}
+          projectId={projectConfig.projectId}
+          teamId={projectConfig.teamId}
+        />
+      );
+    default:
+      return <MissingProjectPath />;
   }
-
-  const { projectId, orgId } = JSON.parse(
-    fs.readFileSync(projectPath, 'utf8'),
-  ) as { projectId: string; orgId: string };
-
-  if (!(projectId && orgId)) {
-    return <MissingProjectId />;
-  }
-
-  return (
-    <Dashboard
-      currentBranch={currentBranch}
-      projectId={projectId}
-      teamId={orgId}
-    />
-  );
 }
 
 createRoot(renderer).render(<App />);
