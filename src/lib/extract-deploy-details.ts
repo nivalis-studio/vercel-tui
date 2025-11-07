@@ -11,6 +11,8 @@ export const getBranch = (d: Deployment) =>
   d.meta?.branch ||
   '';
 
+const MAX_COMMIT_SHA_LENGTH = 7;
+
 export const getCommit = (d: Deployment) => {
   const sha =
     d.meta?.githubCommitSha ||
@@ -18,7 +20,7 @@ export const getCommit = (d: Deployment) => {
     d.meta?.bitbucketCommitSha ||
     d.meta?.commitSha ||
     '';
-  return sha.substring(0, 7) || 'N/A';
+  return sha.substring(0, MAX_COMMIT_SHA_LENGTH) || 'N/A';
 };
 
 export const getStatusInfo = (d: Deployment) => {

@@ -11,10 +11,11 @@ import {
   MissingProjectPath,
 } from '@/_components/missing-project';
 import { Setup } from '@/_components/setup';
+import { useShortcuts } from '@/hooks/use-shortcuts';
 import { hasConfig } from '@/lib/config';
 import theme from '@/theme/catppuccin.json' with { type: 'json' };
 import { resetVercelInstance } from '@/vercel';
-import { useShortcuts } from './hooks/use-shortcuts';
+import type { Deployment } from '@/types/vercel-sdk';
 
 const PROJECT_CONFIG_PATH = '.vercel/project.json';
 
@@ -79,6 +80,12 @@ const renderer = await createCliRenderer({
 });
 
 function App() {
+  const [selectedBranchIndex, setSelectedBranchIndex] = useState<number>(0);
+  const [selectedDeploymentIndex, setSelectedDeploymentIndex] =
+    useState<number>(0);
+  const [viewingDeployment, setViewingDeployment] = useState<
+    Deployment | undefined
+  >(undefined);
   const [isConfigured, setIsConfigured] = useState(hasConfig());
   const { state: projectConfig, refresh: refreshProject } = useProjectConfig();
   const { showHelp } = useShortcuts({ renderer, enabled: isConfigured });
@@ -110,7 +117,13 @@ function App() {
         <Dashboard
           currentBranch={currentBranch}
           projectId={projectConfig.projectId}
+          selectedBranchIndex={selectedBranchIndex}
+          selectedDeploymentIndex={selectedDeploymentIndex}
+          setSelectedBranchIndex={setSelectedBranchIndex}
+          setSelectedDeploymentIndex={setSelectedDeploymentIndex}
+          setViewingDeployment={setViewingDeployment}
           teamId={projectConfig.teamId}
+          viewingDeployment={viewingDeployment}
         />
       );
     default:

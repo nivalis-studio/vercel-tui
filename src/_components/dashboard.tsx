@@ -6,14 +6,28 @@ import {
   LoadingDeploymentsError,
   LoadingProjectError,
 } from './missing-project';
+import type { Deployment } from '@/types/vercel-sdk';
 
 type Props = {
   teamId: string;
   projectId: string;
   currentBranch?: string;
+  selectedBranchIndex: number;
+  setSelectedBranchIndex: React.Dispatch<React.SetStateAction<number>>;
+  selectedDeploymentIndex: number;
+  setSelectedDeploymentIndex: React.Dispatch<React.SetStateAction<number>>;
+  viewingDeployment: Deployment | undefined;
+  setViewingDeployment: React.Dispatch<
+    React.SetStateAction<Deployment | undefined>
+  >;
 };
 
-export const Dashboard = ({ teamId, projectId, currentBranch }: Props) => {
+export const Dashboard = ({
+  teamId,
+  projectId,
+  currentBranch,
+  ...rest
+}: Props) => {
   const { hasFailed: hasFailedProject, project } = useProject({ projectId });
   const {
     hasFailed: hasFailedDeployments,
@@ -43,6 +57,7 @@ export const Dashboard = ({ teamId, projectId, currentBranch }: Props) => {
       project={project}
       refresh={refresh}
       teamId={teamId}
+      {...rest}
     />
   );
 };

@@ -7,6 +7,8 @@ type Props = {
   projectId: string;
 };
 
+const MAX_DEPLOYMENTS = 150;
+
 export const useDeployments = ({ teamId, projectId }: Props) => {
   const [isLoading, setIsLoading] = useState(true);
   const [hasFailed, setHasFailed] = useState(false);
@@ -20,7 +22,7 @@ export const useDeployments = ({ teamId, projectId }: Props) => {
       const response = await vercel.deployments.getDeployments({
         teamId,
         projectId,
-        limit: 100,
+        limit: MAX_DEPLOYMENTS,
       });
       setDeployments(response.deployments);
       setIsLoading(false);

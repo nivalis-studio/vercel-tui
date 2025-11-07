@@ -4,15 +4,11 @@ import { type ScrollBoxRenderable, TextAttributes } from '@opentui/core';
 import { useKeyboard } from '@opentui/react';
 import open from 'open';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import {
-  getBranch,
-  getCommit,
-  getCreatedAt,
-  getStatusInfo,
-} from '@/lib/extract-deploy-details';
-import { getTimeAgo } from '@/lib/time-ago';
+import { getBranch, getCreatedAt } from '@/lib/extract-deploy-details';
 import theme from '@/theme/catppuccin.json' with { type: 'json' };
 import { DeploymentDetails } from './deployment-details';
+import { TableHeader } from './table/header';
+import { TableRows } from './table/rows';
 import type { Deployment, Deployments, Project } from '@/types/vercel-sdk';
 
 type Props = {
@@ -21,42 +17,28 @@ type Props = {
   teamId: string;
   currentBranch?: string;
   refresh: () => Promise<void>;
+  selectedBranchIndex: number;
+  setSelectedBranchIndex: React.Dispatch<React.SetStateAction<number>>;
+  selectedDeploymentIndex: number;
+  setSelectedDeploymentIndex: React.Dispatch<React.SetStateAction<number>>;
+  viewingDeployment: Deployment | undefined;
+  setViewingDeployment: React.Dispatch<
+    React.SetStateAction<Deployment | undefined>
+  >;
 };
-
-const formatRelativeTime = (ts: number) => {
-  return getTimeAgo(new Date(ts));
-};
-
-const truncate = (str: string, len: number) =>
-  str.length > len ? `${str.slice(0, Math.max(0, len - 1))}…` : str;
-
-type Column = { label: string; width?: number; flex?: number };
-
-const columns: Array<Column> = [
-  { label: 'Time', width: 12 },
-  { label: 'Status', width: 12 },
-  { label: 'Target', width: 10 },
-  { label: 'URL', flex: 1 },
-  { label: 'Branch', width: 18 },
-  { label: 'Commit', width: 8 },
-] as const;
 
 export const DeploymentsList = ({
   deployments,
   project,
   teamId,
-  currentBranch,
   refresh,
+  selectedBranchIndex,
+  setSelectedBranchIndex,
+  selectedDeploymentIndex,
+  setSelectedDeploymentIndex,
+  viewingDeployment,
+  setViewingDeployment,
 }: Props) => {
-  const [timeCol, statusCol, targetCol, , branchCol, commitCol] = columns as [
-    Column, // time
-    Column, // status
-    Column, // target
-    Column, // url
-    Column, // branch
-    Column, // commit
-  ];
-
   const branches = useMemo(() => {
     const branchSet = new Set<string>();
     for (const d of deployments) {
@@ -68,13 +50,7 @@ export const DeploymentsList = ({
     return ['All', ...Array.from(branchSet).sort()];
   }, [deployments]);
 
-  const [selectedBranchIndex, setSelectedBranchIndex] = useState(() => {
-    if (currentBranch) {
-      const index = branches.indexOf(currentBranch);
-      return index >= 0 ? index : 0;
-    }
-    return 0;
-  });
+  const asciiBoxWidth = Math.max(project.name.length * 4, 24);
 
   const selectedBranch = branches[selectedBranchIndex];
 
@@ -90,28 +66,39 @@ export const DeploymentsList = ({
     [filtered],
   );
 
-  const [selectedIndex, setSelectedIndex] = useState(0);
-  const [viewingDeployment, setViewingDeployment] = useState<
-    Deployment | undefined
-  >(undefined);
   const scrollboxRef = useRef<ScrollBoxRenderable | null>(null);
+  const branchScrollRef = useRef<ScrollBoxRenderable | null>(null);
+  const [verticalScrollbarWidth, setVerticalScrollbarWidth] = useState(0);
+  const bodyPaddingLeft = 1;
+  const bodyPaddingRight = bodyPaddingLeft + verticalScrollbarWidth;
 
   useEffect(() => {
-    setSelectedIndex(prev => {
+    setSelectedDeploymentIndex(prev => {
       if (sorted.length === 0) {
         return 0;
       }
       const maxIndex = sorted.length - 1;
       return prev > maxIndex ? maxIndex : prev;
     });
-  }, [sorted.length]);
-
-  const _selectedDeploymentId = sorted[selectedIndex]?.uid ?? null;
+  }, [sorted.length, setSelectedDeploymentIndex]);
 
   useEffect(() => {
     const scrollbox = scrollboxRef.current;
-    if (!scrollbox || sorted.length === 0) {
-      scrollbox?.scrollTo(0);
+    if (!scrollbox) {
+      setVerticalScrollbarWidth(0);
+      return;
+    }
+
+    const currentScrollbarWidth = scrollbox.verticalScrollBar?.visible
+      ? (scrollbox.verticalScrollBar.width ?? 0)
+      : 0;
+
+    setVerticalScrollbarWidth(prev =>
+      prev === currentScrollbarWidth ? prev : currentScrollbarWidth,
+    );
+
+    if (sorted.length === 0) {
+      scrollbox.scrollTo(0);
       return;
     }
 
@@ -121,7 +108,7 @@ export const DeploymentsList = ({
       return;
     }
 
-    const rowIndex = Math.min(selectedIndex, rows.length - 1);
+    const rowIndex = Math.min(selectedDeploymentIndex, rows.length - 1);
     if (rowIndex < 0) {
       scrollbox.scrollTop = 0;
       return;
@@ -151,7 +138,51 @@ export const DeploymentsList = ({
       );
       scrollbox.scrollTop = target;
     }
-  }, [selectedIndex, sorted.length]);
+  }, [selectedDeploymentIndex, sorted.length]);
+
+  useEffect(() => {
+    const branchScroll = branchScrollRef.current;
+    if (!branchScroll) {
+      return;
+    }
+
+    const tabs = branchScroll.getChildren();
+    if (!tabs.length) {
+      branchScroll.scrollLeft = 0;
+      return;
+    }
+
+    const tabIndex = Math.min(selectedBranchIndex, tabs.length - 1);
+    if (tabIndex < 0) {
+      branchScroll.scrollLeft = 0;
+      return;
+    }
+
+    const tab = tabs[tabIndex];
+    if (!tab) {
+      return;
+    }
+
+    const viewportWidth = branchScroll.viewport.width;
+    if (!viewportWidth) {
+      return;
+    }
+
+    const tabLeft = tab.x - branchScroll.content.x;
+    const tabRight = tabLeft + tab.width;
+    const currentScrollLeft = branchScroll.scrollLeft;
+    const maxScrollLeft = Math.max(0, branchScroll.scrollWidth - viewportWidth);
+
+    if (tabLeft < currentScrollLeft) {
+      branchScroll.scrollLeft = Math.max(0, tabLeft - 1);
+    } else if (tabRight > currentScrollLeft + viewportWidth) {
+      const target = Math.min(
+        maxScrollLeft,
+        Math.max(0, tabRight - viewportWidth + 1),
+      );
+      branchScroll.scrollLeft = target;
+    }
+  }, [selectedBranchIndex]);
 
   // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: okay-ish
   useKeyboard(key => {
@@ -170,18 +201,18 @@ export const DeploymentsList = ({
       } else {
         setSelectedBranchIndex(prev => (prev + 1) % branches.length);
       }
-      setSelectedIndex(0);
+      setSelectedDeploymentIndex(0);
     } else if (key.name === 'up') {
-      setSelectedIndex(prev => Math.max(0, prev - 1));
+      setSelectedDeploymentIndex(prev => Math.max(0, prev - 1));
     } else if (key.name === 'down') {
-      setSelectedIndex(prev => Math.min(sorted.length - 1, prev + 1));
+      setSelectedDeploymentIndex(prev => Math.min(sorted.length - 1, prev + 1));
     } else if (key.name === 'return') {
-      const selectedDeployment = sorted[selectedIndex];
+      const selectedDeployment = sorted[selectedDeploymentIndex];
       if (selectedDeployment) {
         setViewingDeployment(selectedDeployment);
       }
     } else if (key.name === 'o') {
-      const selectedDeployment = sorted[selectedIndex];
+      const selectedDeployment = sorted[selectedDeploymentIndex];
       if (selectedDeployment) {
         const url = `https://vercel.com/${teamId}/${project.name}/${selectedDeployment.uid}`;
         open(url).catch(err => console.error(err));
@@ -202,9 +233,46 @@ export const DeploymentsList = ({
   }
 
   return (
-    <box flexDirection='column' flexGrow={1} padding={1}>
-      <box flexDirection='row' justifyContent='space-between' marginBottom={1}>
-        <box flexDirection='row' gap={1}>
+    <box
+      flexDirection='column'
+      flexGrow={1}
+      padding={1}
+      style={{ height: '100%', minHeight: 0 }}
+    >
+      <box alignItems='center' flexDirection='row' gap={1} marginBottom={1}>
+        <scrollbox
+          ref={branchScrollRef}
+          scrollX
+          scrollY={false}
+          style={{
+            rootOptions: {
+              flexGrow: 1,
+              height: 3,
+            },
+            wrapperOptions: {
+              backgroundColor: 'transparent',
+              height: 3,
+            },
+            viewportOptions: {
+              backgroundColor: 'transparent',
+              height: 3,
+            },
+            contentOptions: {
+              flexDirection: 'row',
+              gap: 1,
+              alignItems: 'center',
+              paddingLeft: 1,
+              paddingRight: 1,
+            },
+            scrollbarOptions: {
+              showArrows: false,
+              trackOptions: {
+                foregroundColor: theme.defs.darkBlue,
+                backgroundColor: theme.defs.darkSurface0,
+              },
+            },
+          }}
+        >
           {branches.map((branch, index) => {
             const isSelected = index === selectedBranchIndex;
             return (
@@ -224,116 +292,32 @@ export const DeploymentsList = ({
               </box>
             );
           })}
-        </box>
-        <box alignItems='flex-end'>
+        </scrollbox>
+        <box alignItems='flex-end' style={{ width: asciiBoxWidth }}>
           <ascii-font font='tiny' text={project.name} />
         </box>
       </box>
 
-      <box border flexDirection='column' flexGrow={1} title='Deployments'>
-        {/* Header */}
-        <box
-          paddingLeft={1}
-          paddingRight={1}
-          style={{
-            backgroundColor: '#1f2335',
-            border: ['bottom'],
-            borderColor: theme.defs.darkSurface0,
-          }}
-        >
-          <box flexDirection='row' gap={2}>
-            {columns.map(col => (
-              <box
-                key={col.label}
-                style={{ width: col.width, flexGrow: col.flex ?? 0 }}
-              >
-                <text attributes={TextAttributes.DIM}>{col.label}</text>
-              </box>
-            ))}
-          </box>
-        </box>
+      <box
+        border
+        flexDirection='column'
+        flexGrow={1}
+        style={{ minHeight: 0, height: '100%' }}
+        title='Deployments'
+      >
+        <TableHeader
+          bodyPaddingLeft={bodyPaddingLeft}
+          bodyPaddingRight={bodyPaddingRight}
+        />
 
-        <box flexDirection='column' flexGrow={1}>
-          <scrollbox
-            ref={scrollboxRef}
-            style={{
-              rootOptions: {
-                flexGrow: 1,
-              },
-              wrapperOptions: {
-                backgroundColor: theme.defs.darkMantle,
-              },
-              viewportOptions: {
-                backgroundColor: theme.defs.darkCrust,
-              },
-              contentOptions: {
-                backgroundColor: theme.defs.darkCrust,
-                flexDirection: 'column',
-                gap: 0,
-                paddingLeft: 1,
-                paddingRight: 1,
-              },
-              scrollbarOptions: {
-                showArrows: true,
-                trackOptions: {
-                  foregroundColor: theme.defs.darkBlue,
-                  backgroundColor: theme.defs.darkSurface0,
-                },
-              },
-            }}
-          >
-            {sorted.map((d, index) => {
-              const createdAt = getCreatedAt(d);
-              const status = getStatusInfo(d);
-              const branch = getBranch(d);
-              const commit = getCommit(d);
-              const isSelected = index === selectedIndex;
-
-              return (
-                <box
-                  flexDirection='row'
-                  gap={2}
-                  key={d.uid}
-                  style={{
-                    backgroundColor: isSelected ? '#2e3440' : undefined,
-                  }}
-                >
-                  {/* Time */}
-                  <box style={{ width: timeCol.width }}>
-                    <text attributes={TextAttributes.DIM}>
-                      {formatRelativeTime(createdAt)}
-                    </text>
-                  </box>
-
-                  {/* Status */}
-                  <box style={{ width: statusCol.width }}>
-                    <text fg={status.fg}>{status.label}</text>
-                  </box>
-
-                  {/* Target */}
-                  <box style={{ width: targetCol.width }}>
-                    <text>{d.target ?? ''}</text>
-                  </box>
-
-                  {/* URL */}
-                  <box style={{ flexGrow: 1 }}>
-                    <text>{truncate(d.url, 48)}</text>
-                  </box>
-
-                  {/* Branch */}
-                  <box style={{ width: branchCol.width }}>
-                    <text>{truncate(branch, branchCol.width ?? 18)}</text>
-                  </box>
-
-                  {/* Commit */}
-                  <box style={{ width: commitCol.width }}>
-                    <text attributes={TextAttributes.DIM}>{commit}</text>
-                  </box>
-                </box>
-              );
-            })}
-          </scrollbox>
-        </box>
+        <TableRows
+          bodyPaddingLeft={bodyPaddingLeft}
+          bodyPaddingRight={bodyPaddingRight}
+          deployments={deployments}
+          scrollboxRef={scrollboxRef}
+          selectedBranch={selectedBranch}
+          selectedDeploymentIndex={selectedDeploymentIndex}
+        />
       </box>
     </box>
   );
