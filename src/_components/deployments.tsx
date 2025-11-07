@@ -1,9 +1,9 @@
 /** biome-ignore-all lint/style/noMagicNumbers: yay */
 
 import { type ScrollBoxRenderable, TextAttributes } from '@opentui/core';
-import { useKeyboard } from '@opentui/react';
 import open from 'open';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useDeploymentsShortcuts } from '@/hooks/use-deployment-details-shortcuts';
 import { getBranch, getCreatedAt } from '@/lib/extract-deploy-details';
 import theme from '@/theme/catppuccin.json' with { type: 'json' };
 import { DeploymentDetails } from './deployment-details';
@@ -184,42 +184,20 @@ export const DeploymentsList = ({
     }
   }, [selectedBranchIndex]);
 
-  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: okay-ish
-  useKeyboard(key => {
-    if (viewingDeployment) {
-      if (key.name === 'backspace') {
-        setViewingDeployment(undefined);
-      }
-      return;
-    }
-
-    if (key.name === 'tab') {
-      if (key.shift) {
-        setSelectedBranchIndex(
-          prev => (prev - 1 + branches.length) % branches.length,
-        );
-      } else {
-        setSelectedBranchIndex(prev => (prev + 1) % branches.length);
-      }
-      setSelectedDeploymentIndex(0);
-    } else if (key.name === 'up') {
-      setSelectedDeploymentIndex(prev => Math.max(0, prev - 1));
-    } else if (key.name === 'down') {
-      setSelectedDeploymentIndex(prev => Math.min(sorted.length - 1, prev + 1));
-    } else if (key.name === 'return') {
+  useDeploymentsShortcuts({
+    branchesLen: branches.length,
+    deployments: sorted,
+    selectedDeploymentIndex,
+    setSelectedBranchIndex,
+    setSelectedDeploymentIndex,
+    setViewingDeployment,
+    viewingDeployment,
+    refresh,
+    onOpenBrowser: () => {
       const selectedDeployment = sorted[selectedDeploymentIndex];
-      if (selectedDeployment) {
-        setViewingDeployment(selectedDeployment);
-      }
-    } else if (key.name === 'o') {
-      const selectedDeployment = sorted[selectedDeploymentIndex];
-      if (selectedDeployment) {
-        const url = `https://vercel.com/${teamId}/${project.name}/${selectedDeployment.uid}`;
-        open(url).catch(err => console.error(err));
-      }
-    } else if (key.name === 'r') {
-      refresh().catch(err => console.error(err));
-    }
+      const url = `https://vercel.com/${teamId}/${project.name}/${selectedDeployment?.uid}`;
+      open(url).catch(err => console.error(err));
+    },
   });
 
   if (viewingDeployment) {
