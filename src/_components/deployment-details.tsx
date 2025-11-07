@@ -9,7 +9,7 @@ import {
   getStatusInfo,
 } from '@/lib/extract-deploy-details';
 import theme from '@/theme/catppuccin.json' with { type: 'json' };
-import { vercel } from '@/vercel';
+import { getVercel } from '@/vercel';
 import type { Deployment, Project } from '@/types/vercel-sdk';
 
 type Props = {
@@ -50,6 +50,7 @@ export const DeploymentDetails = ({ deployment, project, teamId }: Props) => {
 
     const fetchLogs = async () => {
       try {
+        const vercel = getVercel();
         const response = await vercel.deployments.getDeploymentEvents({
           idOrUrl: deployment.uid,
           teamId,

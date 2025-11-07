@@ -94,6 +94,7 @@ export const DeploymentsList = ({
     Deployment | undefined
   >(undefined);
 
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: okay-ish
   useKeyboard(key => {
     if (viewingDeployment) {
       if (key.name === 'backspace') {

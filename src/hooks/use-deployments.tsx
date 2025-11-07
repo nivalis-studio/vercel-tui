@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { vercel } from '@/vercel';
+import { getVercel } from '@/vercel';
 import type { Deployments } from '@/types/vercel-sdk';
 
 type Props = {
@@ -16,6 +16,7 @@ export const useDeployments = ({ teamId, projectId }: Props) => {
     setIsLoading(true);
     setHasFailed(false);
     try {
+      const vercel = getVercel();
       const response = await vercel.deployments.getDeployments({
         teamId,
         projectId,

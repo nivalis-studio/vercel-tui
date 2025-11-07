@@ -1,10 +1,12 @@
-import type { vercel } from '@/vercel';
+import type { Vercel } from '@vercel/sdk';
+
+type VercelClient = Vercel;
 
 export type Deployments = Awaited<
-  ReturnType<typeof vercel.deployments.getDeployments>
+  ReturnType<VercelClient['deployments']['getDeployments']>
 >['deployments'];
 export type Deployment = Deployments[number];
 export type Projects = Awaited<
-  ReturnType<typeof vercel.projects.getProjects>
+  ReturnType<VercelClient['projects']['getProjects']>
 >['projects'];
 export type Project = Projects[number];

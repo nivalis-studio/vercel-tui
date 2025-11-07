@@ -7,7 +7,10 @@ import {
   MissingProjectId,
   MissingProjectPath,
 } from '@/_components/missing-project';
+import { Setup } from '@/_components/setup';
+import { hasConfig } from '@/lib/config';
 import theme from '@/theme/catppuccin.json' with { type: 'json' };
+import { resetVercelInstance } from '@/vercel';
 import { Dashboard } from './_components/dashboard';
 
 const projectPath = fs.existsSync('.vercel/project.json')
@@ -99,6 +102,7 @@ function HelpPanel() {
 
 function App() {
   const [showHelp, setShowHelp] = useState(false);
+  const [isConfigured, setIsConfigured] = useState(hasConfig());
 
   useKeyboard(key => {
     if (key.name === '?') {
@@ -119,6 +123,17 @@ function App() {
       process.exit(0);
     }
   });
+
+  if (!isConfigured) {
+    return (
+      <Setup
+        onComplete={() => {
+          resetVercelInstance();
+          setIsConfigured(true);
+        }}
+      />
+    );
+  }
 
   if (showHelp) {
     return <HelpPanel />;

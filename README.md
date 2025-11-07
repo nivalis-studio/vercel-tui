@@ -24,6 +24,21 @@ bun add -g @nivalis/vercel-tui
 npx @nivalis/vercel-tui
 ```
 
+## Setup
+
+On first run, you'll be prompted to configure your Vercel API token:
+
+1. Visit [Vercel Account Tokens](https://vercel.com/account/tokens)
+2. Click "Create Token"
+3. Give it a name (e.g., "Vercel TUI")
+4. Select appropriate scopes (read access to projects and deployments)
+5. Copy the generated token
+6. Paste it into the setup screen
+
+The token will be securely stored in `~/.config/vercel-tui/config.json`.
+
+For more information about Vercel API authentication, see the [official documentation](https://vercel.com/docs/rest-api/reference/welcome#authentication).
+
 ## Usage
 
 Run the TUI from any Vercel project directory:

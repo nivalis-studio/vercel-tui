@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { getConfig } from '@/lib/config';
 import type { Project } from '@/types/vercel-sdk';
 
 type Props = {
@@ -12,10 +13,15 @@ export const useProject = ({ projectId }: Props) => {
 
   useEffect(() => {
     const fetchProject = async () => {
+      const config = getConfig();
+      if (!config?.bearerToken) {
+        throw new Error('Bearer token not configured');
+      }
+
       const url = `https://api.vercel.com/v9/projects/${projectId}`;
       const options = {
         method: 'GET',
-        headers: { Authorization: 'Bearer jArwVRv3eOITMt3fbn959KCw' },
+        headers: { Authorization: `Bearer ${config.bearerToken}` },
         body: undefined,
       };
 
