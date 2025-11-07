@@ -1,5 +1,5 @@
-import { exec } from 'node:child_process';
 import { TextAttributes } from '@opentui/core';
+import open from 'open';
 import { useEffect, useState } from 'react';
 import { useDeploymentDetailsShortcuts } from '@/hooks/use-deployment-details-shortcuts';
 import {
@@ -76,7 +76,7 @@ export const DeploymentDetails = ({ deployment, project, teamId }: Props) => {
     },
     onOpenBrowser: () => {
       const url = `https://vercel.com/${teamId}/${project.name}/${deployment.uid}`;
-      exec(`open "${url}"`);
+      open(url).catch(err => console.error(err));
     },
   });
 

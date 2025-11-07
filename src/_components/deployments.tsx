@@ -1,7 +1,8 @@
 /** biome-ignore-all lint/style/noMagicNumbers: yay */
-import { exec } from 'node:child_process';
+
 import { TextAttributes } from '@opentui/core';
 import { useKeyboard } from '@opentui/react';
+import open from 'open';
 import { useMemo, useState } from 'react';
 import {
   getBranch,
@@ -125,7 +126,7 @@ export const DeploymentsList = ({
       const selectedDeployment = sorted[selectedIndex];
       if (selectedDeployment) {
         const url = `https://vercel.com/${teamId}/${project.name}/${selectedDeployment.uid}`;
-        exec(`open "${url}"`);
+        open(url).catch(err => console.error(err));
       }
     } else if (key.name === 'r') {
       refresh().catch(err => console.error(err));
