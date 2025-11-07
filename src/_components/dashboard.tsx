@@ -10,9 +10,10 @@ import {
 type Props = {
   teamId: string;
   projectId: string;
+  currentBranch?: string;
 };
 
-export const Dashboard = ({ teamId, projectId }: Props) => {
+export const Dashboard = ({ teamId, projectId, currentBranch }: Props) => {
   const { hasFailed: hasFailedProject, project } = useProject({ projectId });
   const { hasFailed: hasFailedDeployments, deployments } = useDeployments({
     teamId,
@@ -33,6 +34,7 @@ export const Dashboard = ({ teamId, projectId }: Props) => {
 
   return (
     <DeploymentsList
+      currentBranch={currentBranch}
       deployments={deployments}
       project={project}
       teamId={teamId}

@@ -2,7 +2,7 @@
 import { exec } from 'node:child_process';
 import { TextAttributes } from '@opentui/core';
 import { useKeyboard } from '@opentui/react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { getTimeAgo } from '@/lib/time-ago';
 import theme from '@/theme/catppuccin.json' with { type: 'json' };
 import type { Deployment, Deployments, Project } from '@/types/vercel-sdk';
@@ -11,6 +11,7 @@ type Props = {
   project: Project;
   deployments: Deployments;
   teamId: string;
+  currentBranch?: string;
 };
 
 const getCreatedAt = (d: Deployment) => d.createdAt ?? d.created;
@@ -68,7 +69,12 @@ const columns: Array<Column> = [
   { label: 'Commit', width: 8 },
 ];
 
-export const DeploymentsList = ({ deployments, project, teamId }: Props) => {
+export const DeploymentsList = ({
+  deployments,
+  project,
+  teamId,
+  currentBranch,
+}: Props) => {
   const [timeCol, statusCol, targetCol, , branchCol, commitCol] = columns as [
     Column,
     Column,
@@ -77,14 +83,53 @@ export const DeploymentsList = ({ deployments, project, teamId }: Props) => {
     Column,
     Column,
   ];
-  const sorted = [...deployments].sort(
-    (a, b) => getCreatedAt(b) - getCreatedAt(a),
+
+  const branches = useMemo(() => {
+    const branchSet = new Set<string>();
+    for (const d of deployments) {
+      const branch = getBranch(d);
+      if (branch) {
+        branchSet.add(branch);
+      }
+    }
+    return ['All', ...Array.from(branchSet).sort()];
+  }, [deployments]);
+
+  const [selectedBranchIndex, setSelectedBranchIndex] = useState(() => {
+    if (currentBranch) {
+      const index = branches.indexOf(currentBranch);
+      return index >= 0 ? index : 0;
+    }
+    return 0;
+  });
+
+  const selectedBranch = branches[selectedBranchIndex];
+
+  const filtered = useMemo(() => {
+    if (selectedBranch === 'All') {
+      return deployments;
+    }
+    return deployments.filter(d => getBranch(d) === selectedBranch);
+  }, [deployments, selectedBranch]);
+
+  const sorted = useMemo(
+    () => [...filtered].sort((a, b) => getCreatedAt(b) - getCreatedAt(a)),
+    [filtered],
   );
 
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   useKeyboard(key => {
-    if (key.name === 'up') {
+    if (key.name === 'tab') {
+      if (key.shift) {
+        setSelectedBranchIndex(
+          prev => (prev - 1 + branches.length) % branches.length,
+        );
+      } else {
+        setSelectedBranchIndex(prev => (prev + 1) % branches.length);
+      }
+      setSelectedIndex(0);
+    } else if (key.name === 'up') {
       setSelectedIndex(prev => Math.max(0, prev - 1));
     } else if (key.name === 'down') {
       setSelectedIndex(prev => Math.min(sorted.length - 1, prev + 1));
@@ -99,8 +144,31 @@ export const DeploymentsList = ({ deployments, project, teamId }: Props) => {
 
   return (
     <box flexDirection='column' flexGrow={1} padding={1}>
-      <box alignItems='flex-end' justifyContent='flex-start' marginBottom={1}>
-        <ascii-font font='tiny' text={project.name} />
+      <box flexDirection='row' justifyContent='space-between' marginBottom={1}>
+        <box flexDirection='row' gap={1}>
+          {branches.map((branch, index) => {
+            const isSelected = index === selectedBranchIndex;
+            return (
+              <box
+                key={branch}
+                paddingLeft={1}
+                paddingRight={1}
+                style={{
+                  backgroundColor: isSelected ? theme.defs.darkBlue : undefined,
+                }}
+              >
+                <text
+                  attributes={isSelected ? TextAttributes.INVERSE : undefined}
+                >
+                  {branch}
+                </text>
+              </box>
+            );
+          })}
+        </box>
+        <box alignItems='flex-end'>
+          <ascii-font font='tiny' text={project.name} />
+        </box>
       </box>
 
       <box border flexDirection='column' flexGrow={1} title='Deployments'>

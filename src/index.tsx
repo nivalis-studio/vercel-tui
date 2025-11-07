@@ -1,3 +1,4 @@
+import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import { createCliRenderer } from '@opentui/core';
 import { createRoot, useKeyboard } from '@opentui/react';
@@ -11,6 +12,19 @@ import { Dashboard } from './_components/dashboard';
 const projectPath = fs.existsSync('.vercel/project.json')
   ? '.vercel/project.json'
   : null;
+
+const getCurrentBranch = (): string | undefined => {
+  try {
+    return execSync('git rev-parse --abbrev-ref HEAD', {
+      encoding: 'utf8',
+      stdio: ['pipe', 'pipe', 'ignore'],
+    }).trim();
+  } catch {
+    return;
+  }
+};
+
+const currentBranch = getCurrentBranch();
 
 const renderer = await createCliRenderer({
   backgroundColor: theme.defs.darkBase,
@@ -39,7 +53,13 @@ function App() {
     return <MissingProjectId />;
   }
 
-  return <Dashboard projectId={projectId} teamId={orgId} />;
+  return (
+    <Dashboard
+      currentBranch={currentBranch}
+      projectId={projectId}
+      teamId={orgId}
+    />
+  );
 }
 
 createRoot(renderer).render(<App />);
