@@ -20,7 +20,7 @@ export const useShortcuts = ({ renderer, enabled = true }: Props) => {
       return;
     }
 
-    if (showHelp && key.name === 'escape') {
+    if (showHelp && (key.name === 'escape' || key.name === 'backspace')) {
       setShowHelp(false);
       return;
     }

@@ -57,7 +57,7 @@ export function HelpPanel() {
 
           <box marginTop={2}>
             <text attributes={TextAttributes.DIM}>
-              Press ? or ESC to close this help
+              Press ?, BACKSPACE or ESC to close this help
             </text>
           </box>
         </box>
