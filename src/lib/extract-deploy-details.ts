@@ -18,7 +18,7 @@ export const getCommit = (d: Deployment) => {
     d.meta?.bitbucketCommitSha ||
     d.meta?.commitSha ||
     '';
-  return sha || 'N/A';
+  return sha.substring(0, 7) || 'N/A';
 };
 
 export const getStatusInfo = (d: Deployment) => {
