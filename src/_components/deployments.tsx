@@ -3,6 +3,12 @@ import { exec } from 'node:child_process';
 import { TextAttributes } from '@opentui/core';
 import { useKeyboard } from '@opentui/react';
 import { useMemo, useState } from 'react';
+import {
+  getBranch,
+  getCommit,
+  getCreatedAt,
+  getStatusInfo,
+} from '@/lib/extract-deploy-details';
 import { getTimeAgo } from '@/lib/time-ago';
 import theme from '@/theme/catppuccin.json' with { type: 'json' };
 import { DeploymentDetails } from './deployment-details';
@@ -16,45 +22,8 @@ type Props = {
   refresh: () => Promise<void>;
 };
 
-const getCreatedAt = (d: Deployment) => d.createdAt ?? d.created;
-
 const formatRelativeTime = (ts: number) => {
   return getTimeAgo(new Date(ts));
-};
-
-const getBranch = (d: Deployment) =>
-  d.meta?.githubCommitRef ||
-  d.meta?.gitlabCommitRef ||
-  d.meta?.bitbucketCommitRef ||
-  d.meta?.commitRef ||
-  d.meta?.branch ||
-  '';
-
-const getCommit = (d: Deployment) => {
-  const sha =
-    d.meta?.githubCommitSha ||
-    d.meta?.gitlabCommitSha ||
-    d.meta?.bitbucketCommitSha ||
-    d.meta?.commitSha ||
-    '';
-  return sha ? sha.slice(0, 7) : '';
-};
-
-const getStatusInfo = (d: Deployment) => {
-  const state = d.readyState || d.state || 'UNKNOWN';
-  let fg = theme.defs.darkOverlay2;
-  if (state === 'READY') {
-    fg = theme.defs.darkGreen;
-  } else if (
-    state === 'BUILDING' ||
-    state === 'INITIALIZING' ||
-    state === 'QUEUED'
-  ) {
-    fg = theme.defs.darkYellow;
-  } else if (state === 'ERROR' || state === 'CANCELED' || state === 'DELETED') {
-    fg = theme.defs.darkRed;
-  }
-  return { label: state, fg } as const;
 };
 
 const truncate = (str: string, len: number) =>
