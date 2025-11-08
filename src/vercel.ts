@@ -7,19 +7,23 @@ export const resetVercelInstance = (): void => {
   vercelInstance = null;
 };
 
-export const getVercel = (): Vercel => {
-  if (vercelInstance) {
-    return vercelInstance;
-  }
-
+export const getToken = (): string => {
   const config = getConfig();
 
   if (!config?.bearerToken) {
     throw new Error('Bearer token not configured');
   }
 
+  return config.bearerToken;
+};
+
+export const getVercel = (): Vercel => {
+  if (vercelInstance) {
+    return vercelInstance;
+  }
+
   vercelInstance = new Vercel({
-    bearerToken: config.bearerToken,
+    bearerToken: getToken(),
   });
 
   return vercelInstance;

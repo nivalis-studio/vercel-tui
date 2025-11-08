@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { getConfig } from '@/lib/config';
+import { getToken } from '@/vercel';
 import type { Project, Projects } from '@/types/vercel-sdk';
 
 type Props = {
@@ -28,7 +29,7 @@ export const useProjects = ({ teamId }: { teamId: string }) => {
 
     const options = {
       method: 'GET',
-      headers: { Authorization: 'Bearer IvVbJk3kr093EKVc9khegVvE' },
+      headers: { Authorization: `Bearer ${getToken()}` },
       body: undefined,
     };
 
