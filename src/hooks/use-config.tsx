@@ -3,35 +3,44 @@ import { useState } from 'react';
 
 const PROJECT_CONFIG_PATH = '.vercel/project.json';
 
-export type ProjectConfigState =
-  | { status: 'missing_path' }
-  | { status: 'missing_id' }
-  | { status: 'ready'; projectId: string; teamId: string }
-  | { status: 'error'; message: string };
+export type ProjectConfigState = { projectId: string; teamId: string };
 
 const readProjectConfig = (): ProjectConfigState => {
+  let content: string;
+  let projectId: string | undefined;
+  let orgId: string | undefined;
+
   try {
-    const contents = fs.readFileSync(PROJECT_CONFIG_PATH, 'utf8');
-    const { projectId, orgId } = JSON.parse(contents) as {
+    content = fs.readFileSync(PROJECT_CONFIG_PATH, 'utf8');
+  } catch (error) {
+    throw new Error(
+      'Could not read the project config. Try running `vercel link`',
+      { cause: error },
+    );
+  }
+
+  try {
+    const json = JSON.parse(content) as {
       projectId?: string;
       orgId?: string;
     };
 
-    if (projectId && orgId) {
-      return { status: 'ready', projectId, teamId: orgId };
-    }
-
-    return { status: 'missing_id' };
+    projectId = json.projectId;
+    orgId = json.orgId;
   } catch (error) {
-    const err = error as NodeJS.ErrnoException;
-
-    if (err.code === 'ENOENT') {
-      return { status: 'missing_path' };
-    }
-
-    console.error('Failed to read project config:', error);
-    return { status: 'error', message: err.message };
+    throw new Error(
+      'Could not parse the project config. Try running `vercel link`',
+      { cause: error },
+    );
   }
+
+  if (projectId && orgId) {
+    return { projectId, teamId: orgId };
+  }
+
+  throw new Error(
+    'Could not find project or organization ID. Try running `vercel link`',
+  );
 };
 
 export function useProjectConfig() {
