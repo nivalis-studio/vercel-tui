@@ -2,10 +2,7 @@ import { useDeployments } from '@/hooks/use-deployments';
 import { useProject } from '@/hooks/use-projects';
 import { DeploymentsList } from './deployments';
 import { Loading } from './loading';
-import {
-  LoadingDeploymentsError,
-  LoadingProjectError,
-} from './missing-project';
+import { LoadingProjectError } from './missing-project';
 import type { Deployment } from '@/types/vercel-sdk';
 
 type Props = {
@@ -32,21 +29,10 @@ export const Dashboard = ({
     teamId,
     projectId,
   });
-  const {
-    hasFailed: hasFailedDeployments,
-    deployments,
-    refresh,
-  } = useDeployments({
-    teamId,
-    projectId,
-  });
+  const { deployments, refresh } = useDeployments(projectId);
 
   if (hasFailedProject) {
     return <LoadingProjectError />;
-  }
-
-  if (hasFailedDeployments) {
-    return <LoadingDeploymentsError />;
   }
 
   if (!(deployments && project)) {

@@ -1,43 +1,31 @@
+/** biome-ignore-all lint/nursery/noImportCycles: . */
 import { useCallback, useEffect, useState } from 'react';
-import { getVercel } from '@/vercel';
+import { useCtx } from '@/app';
+import { fetchProjectDeployments } from '@/lib/deployments';
 import type { Deployments } from '@/types/vercel-sdk';
 
-type Props = {
-  teamId: string;
-  projectId: string;
-};
-
-const MAX_DEPLOYMENTS = 150;
-
-export const useDeployments = ({ teamId, projectId }: Props) => {
+export const useDeployments = (projectId: string) => {
+  const { teamId } = useCtx();
   const [isLoading, setIsLoading] = useState(true);
-  const [hasFailed, setHasFailed] = useState(false);
   const [deployments, setDeployments] = useState<Deployments>([]);
+  const [error, setError] = useState<Error | null>(null);
 
   const fetchDeployment = useCallback(async () => {
     setIsLoading(true);
-    setHasFailed(false);
-    try {
-      const vercel = getVercel();
-      const response = await vercel.deployments.getDeployments({
-        teamId,
-        projectId,
-        limit: MAX_DEPLOYMENTS,
-      });
-      setDeployments(response.deployments);
-      setIsLoading(false);
-    } catch (error) {
-      console.error(error);
-      setHasFailed(true);
-      setIsLoading(false);
-    }
+    const deployments_ = await fetchProjectDeployments(projectId, teamId);
+    setDeployments(deployments_);
+    setIsLoading(false);
   }, [teamId, projectId]);
 
   useEffect(() => {
-    fetchDeployment().catch(() => {
-      /* */
+    fetchDeployment().catch(err => {
+      setError(err instanceof Error ? err : new Error(String(err)));
     });
   }, [fetchDeployment]);
 
-  return { isLoading, deployments, hasFailed, refresh: fetchDeployment };
+  if (error) {
+    throw error;
+  }
+
+  return { isLoading, deployments, refresh: fetchDeployment };
 };

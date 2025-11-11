@@ -7,7 +7,9 @@ import {
   useState,
 } from 'react';
 import { Loading } from './_components/loading';
-import { getProjectConfig, type ProjectConfig } from './lib/config';
+// biome-ignore lint/nursery/noImportCycles: .
+import { ProjectDashboard } from './_components/project';
+import { getProjectConfig } from './lib/config';
 import { fetchProjects as fetchProjects_ } from './lib/projects';
 import type { Project, Projects } from './types/vercel-sdk';
 
@@ -18,22 +20,22 @@ type Ctx = {
   setProjectId: (projectId: string) => void;
   projects: Projects;
   refreshProjects: () => Promise<void>;
-  project: Project | undefined;
-  config: ProjectConfig;
+  project: Project;
+  teamId: string;
 };
 
 const ctx = createContext<Ctx | null>(null);
 
 export const ConfiguredApp = () => {
   const config = getProjectConfig();
-  const [content, setContent] = useState<ReactNode>(null);
+  const [content, setContent] = useState<ReactNode>(<ProjectDashboard />);
   const [modal, setModal] = useState<ReactNode>(null);
   const [projectId, setProjectId] = useState(config.projectId);
   const [projects, setProjects] = useState<Projects | null>(null);
   const [error, setError] = useState<Error | null>(null);
 
   const fetchProjects = useCallback(async () => {
-    const projects_ = await fetchProjects_(config);
+    const projects_ = await fetchProjects_(config.teamId);
     setProjects(projects_);
   }, [config]);
 
@@ -58,14 +60,17 @@ export const ConfiguredApp = () => {
 
   const project = projects.find(p => p.id === projectId);
 
-  // TODO: if !project we should display project switcher to set one
+  if (!project) {
+    // TODO: if !project we should display project switcher to set one
+    throw new Error('No project was selected');
+  }
 
   const ctx_: Ctx = {
     setContent,
     projectId,
     setProjectId,
     setModal,
-    config,
+    teamId: config.teamId,
     projects,
     refreshProjects: fetchProjects,
     project,

@@ -53,6 +53,7 @@ export const Loading = ({ label }: { label?: string }) => {
         alignItems='center'
         borderStyle='rounded'
         flexDirection='column'
+        gap={1}
         justifyContent='center'
         style={{
           paddingLeft: 2,

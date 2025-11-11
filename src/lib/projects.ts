@@ -1,10 +1,10 @@
 import { getToken } from '@/vercel';
-import { getConfig, type ProjectConfig } from './config';
+import { getConfig } from './config';
 import type { Project } from '@/types/vercel-sdk';
 
 const MAX_PROJECTS = 150;
 
-export const fetchProjects = async (config: ProjectConfig) => {
+export const fetchProjects = async (teamId: string) => {
   const globalConfig = getConfig();
   if (!globalConfig?.bearerToken) {
     throw new Error('Bearer token not configured');
@@ -12,7 +12,7 @@ export const fetchProjects = async (config: ProjectConfig) => {
 
   const url = 'https://api.vercel.com/v10/projects';
   const searchParams = new URLSearchParams({
-    teamId: config.teamId,
+    teamId,
     limit: MAX_PROJECTS.toString(),
   });
 
