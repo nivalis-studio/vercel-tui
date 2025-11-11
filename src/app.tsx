@@ -1,6 +1,14 @@
-import { createContext, type ReactNode, useContext, useState } from 'react';
-import { getProjectConfig, type ProjectConfig } from './lib/config';
-import type { Projects } from './types/vercel-sdk';
+import {
+  createContext,
+  type ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
+import { getConfig, getProjectConfig, type ProjectConfig } from './lib/config';
+import { getToken } from './vercel';
+import type { Project, Projects } from './types/vercel-sdk';
 
 type Ctx = {
   setContent: (content: ReactNode) => void;
@@ -8,10 +16,14 @@ type Ctx = {
   projectId: string;
   setProjectId: (projectId: string) => void;
   projects: Projects;
+  refreshProjects: () => Promise<void>;
+  project: Project | undefined;
   config: ProjectConfig;
 };
 
 const ctx = createContext<Ctx | null>(null);
+
+const MAX_PROJECTS = 150;
 
 export const ConfiguredApp = () => {
   const config = getProjectConfig();
@@ -19,6 +31,48 @@ export const ConfiguredApp = () => {
   const [modal, setModal] = useState<ReactNode>(null);
   const [projectId, setProjectId] = useState(config.projectId);
   const [projects, setProjects] = useState<Projects>([]);
+  const [error, setError] = useState<Error | null>(null);
+
+  const fetchProjects = useCallback(async () => {
+    const globalConfig = getConfig();
+    if (!globalConfig?.bearerToken) {
+      throw new Error('Bearer token not configured');
+    }
+
+    const url = 'https://api.vercel.com/v10/projects';
+    const searchParams = new URLSearchParams({
+      teamId: config.teamId,
+      limit: MAX_PROJECTS.toString(),
+    });
+
+    const options = {
+      method: 'GET',
+      headers: { Authorization: `Bearer ${getToken()}` },
+      body: undefined,
+    };
+
+    const full = `${url}?${searchParams.toString()}`;
+    const response = await fetch(full, options);
+
+    if (!response.ok) {
+      const cause = await response.json();
+      throw new Error('Failed to fetch projects', { cause });
+    }
+    const data = (await response.json()) as { projects: Array<Project> };
+    setProjects(data.projects);
+  }, [config.teamId]);
+
+  useEffect(() => {
+    fetchProjects().catch(err => {
+      setError(err instanceof Error ? err : new Error(String(err)));
+    });
+  }, [fetchProjects]);
+
+  if (error) {
+    throw error;
+  }
+
+  const project = projects.find(p => p.id === projectId);
 
   const ctx_: Ctx = {
     setContent,
@@ -27,6 +81,8 @@ export const ConfiguredApp = () => {
     setModal,
     config,
     projects,
+    refreshProjects: fetchProjects,
+    project,
   };
 
   return (
