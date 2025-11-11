@@ -1,4 +1,3 @@
-/** biome-ignore-all lint/nursery/noImportCycles: . */
 import { useCtx } from '@/app';
 import { useDeployments } from '@/hooks/use-deployments';
 import { Loading } from './loading';

@@ -1,4 +1,3 @@
-/** biome-ignore-all lint/nursery/noImportCycles: . */
 import { useCallback, useEffect, useState } from 'react';
 import { useCtx } from '@/app';
 import { fetchProjectDeployments } from '@/lib/deployments';

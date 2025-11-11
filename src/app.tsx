@@ -7,7 +7,6 @@ import {
   useState,
 } from 'react';
 import { Loading } from './_components/loading';
-// biome-ignore lint/nursery/noImportCycles: .
 import { ProjectDashboard } from './_components/project';
 import { getProjectConfig } from './lib/config';
 import { fetchProjects as fetchProjects_ } from './lib/projects';

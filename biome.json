@@ -1,4 +1,11 @@
 {
 	"$schema": "https://biomejs.dev/schemas/2.3.4/schema.json",
-	"extends": ["@nivalis/biome-config"]
+	"extends": ["@nivalis/biome-config"],
+	"linter": {
+		"rules": {
+			"nursery": {
+				"noImportCycles": "off"
+			}
+		}
+	}
 }
