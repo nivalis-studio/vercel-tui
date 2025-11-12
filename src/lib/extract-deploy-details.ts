@@ -26,24 +26,29 @@ export const getCommit = (d: Deployment) => {
 export const getStatusInfo = (d: Deployment) => {
   const state = d.readyState || d.state || 'UNKNOWN';
   let fg = theme.defs.darkOverlay2;
+  let icon = '●';
 
   switch (state) {
     case 'READY':
+      icon = '✓';
       fg = theme.defs.darkGreen;
+      break;
+    case 'QUEUED':
+      fg = theme.defs.darkOverlay2;
       break;
     case 'BUILDING':
     case 'INITIALIZING':
-    case 'QUEUED':
       fg = theme.defs.darkYellow;
       break;
     case 'ERROR':
     case 'CANCELED':
     case 'DELETED':
+      icon = '✕';
       fg = theme.defs.darkRed;
       break;
     default:
       fg = theme.defs.darkOverlay2;
   }
 
-  return { label: state, fg } as const;
+  return { label: state, fg, icon } as const;
 };

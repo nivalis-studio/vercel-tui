@@ -7,8 +7,8 @@ import { Loading } from './loading';
 import type { Deployment } from '@/types/vercel-sdk';
 
 const getBranchesList = (deployments: Array<Deployment>) => {
-  const map = new Map<string, number>();
-  let lastUpdatedAt: number | undefined;
+  const map = new Map<string, Deployment>();
+  let lastDeployment: Deployment | undefined;
 
   for (const deployment of deployments) {
     const branch = getBranch(deployment);
@@ -21,21 +21,24 @@ const getBranchesList = (deployments: Array<Deployment>) => {
 
     const latest = map.get(branch);
 
-    if (!lastUpdatedAt || createdAt < lastUpdatedAt) {
-      lastUpdatedAt = createdAt;
+    if (!lastDeployment || createdAt < getCreatedAt(deployment)) {
+      lastDeployment = deployment;
     }
 
-    if (!latest || createdAt > latest) {
-      map.set(branch, createdAt);
+    if (!latest || createdAt > getCreatedAt(latest)) {
+      map.set(branch, deployment);
     }
   }
 
   const sortedBranches = Array.from(map.entries()).sort(
-    ([bA, createdA], [bB, createdB]) =>
-      createdB - createdA || bA.localeCompare(bB),
+    ([bA, depA], [bB, depB]) =>
+      getCreatedAt(depB) - getCreatedAt(depA) || bA.localeCompare(bB),
   );
 
-  return [['All', lastUpdatedAt], ...sortedBranches];
+  // biome-ignore lint/style/noNonNullAssertion: .
+  return [['All', lastDeployment!], ...sortedBranches] as Array<
+    [string, Deployment]
+  >;
 };
 
 export const ProjectDashboard = () => {
