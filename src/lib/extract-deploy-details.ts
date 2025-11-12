@@ -38,7 +38,7 @@ export const getStatusInfo = (d: Deployment) => {
       break;
     case 'BUILDING':
     case 'INITIALIZING':
-      fg = theme.defs.darkYellow;
+      fg = theme.defs.darkPeach;
       break;
     case 'ERROR':
     case 'CANCELED':

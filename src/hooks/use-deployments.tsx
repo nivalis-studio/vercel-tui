@@ -18,19 +18,20 @@ export const useDeployments = (projectId: string) => {
     setIsLoading(false);
   }, [teamId, projectId]);
 
+  const handleErr = useCallback((err: unknown) => {
+    setError(err instanceof Error ? err : new Error(String(err)));
+  }, []);
+
   useEffect(() => {
+    fetchDeployment().catch(handleErr);
+
     const interval = setInterval(
-      () =>
-        fetchDeployment().catch(err => {
-          setError(err instanceof Error ? err : new Error(String(err)));
-        }),
+      () => fetchDeployment().catch(handleErr),
       REFETCH_INTERVAL_MS,
     );
 
-    () => {
-      clearInterval(interval);
-    };
-  }, [fetchDeployment]);
+    return () => clearInterval(interval);
+  }, [fetchDeployment, handleErr]);
 
   if (error) {
     throw error;
