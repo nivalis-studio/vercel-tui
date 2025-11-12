@@ -61,7 +61,7 @@ class ErrorBoundary_ extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
               fg={THEME.defs.darkRed}
             />
             <text content={`${this.state.error?.cause || ''}`} />
-            <text attributes={TextAttributes.DIM}>press q to quit</text>
+            <text attributes={TextAttributes.DIM}>press Q to quit</text>
           </box>
         </box>
       );
