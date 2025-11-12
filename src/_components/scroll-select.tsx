@@ -21,36 +21,32 @@ export const ScrollSelect = ({
   const [hoveredIdx, setHoveredIdx] = useState(0);
 
   useEffect(() => {
-    const scrollbox = scrollRef.current;
-
-    if (!scrollbox) {
+    const scroll = scrollRef.current;
+    if (!scroll) {
       return;
     }
 
-    const rows_ = scrollbox.getChildren();
-    const row = rows_[hoveredIdx];
+    // how many rows are visible in the scrollbox viewport
+    const viewportH = scroll.viewport.height;
 
-    if (!row) {
+    if (!viewportH || rows.length === 0) {
       return;
     }
 
-    const viewportHeight = scrollbox.viewport.height;
+    // current visible range [top, bottom] (inclusive)
+    const top = scroll.scrollTop;
+    const bottom = top + viewportH - 1;
 
-    const rowTop = row.y - scrollbox.content.y;
-    const rowBottom = rowTop + row.height;
-    const currentScrollTop = scrollbox.scrollTop;
-    const maxScrollTop = Math.max(0, scrollbox.scrollHeight - viewportHeight);
-
-    if (rowTop < currentScrollTop) {
-      scrollbox.scrollTop = Math.max(0, rowTop);
-    } else if (rowBottom > currentScrollTop + viewportHeight) {
-      const target = Math.min(
-        maxScrollTop,
-        Math.max(0, rowBottom - viewportHeight),
-      );
-      scrollbox.scrollTop = target;
+    if (hoveredIdx < top) {
+      // hovered row is above the viewport -> scroll up so it's the first row
+      scroll.scrollTop = hoveredIdx;
+    } else if (hoveredIdx > bottom) {
+      // hovered row is below the viewport -> scroll down so it's the last row
+      const maxTop = Math.max(0, scroll.scrollHeight - viewportH);
+      const targetTop = Math.min(hoveredIdx - viewportH + 1, maxTop);
+      scroll.scrollTop = targetTop;
     }
-  }, [hoveredIdx]);
+  }, [hoveredIdx, rows.length]);
 
   useKeyboard(key => {
     if (!focused) {
@@ -82,7 +78,6 @@ export const ScrollSelect = ({
       <scrollbox
         flexDirection='column'
         flexGrow={1}
-        focused={focused}
         overflow='scroll'
         ref={scrollRef}
       >
