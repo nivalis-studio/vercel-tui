@@ -58,6 +58,7 @@ export const ProjectDashboard = () => {
     <box flexDirection='row' height='100%' width='100%'>
       <BranchList
         branches={branches}
+        focused={true}
         onSelectBranch={setSelectedBranch}
         selectedBranch={selectedBranch}
       />
