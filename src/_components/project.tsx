@@ -1,8 +1,10 @@
+import { useKeyboard } from '@opentui/react';
 import { useMemo, useState } from 'react';
 import { useCtx } from '@/app';
 import { useDeployments } from '@/hooks/use-deployments';
 import { getBranch, getCreatedAt } from '@/lib/extract-deploy-details';
 import { BranchList } from './branch-list';
+import { DeploymentsList } from './deployments-list';
 import { Loading } from './loading';
 import type { Deployment } from '@/types/vercel-sdk';
 
@@ -45,29 +47,50 @@ export const ProjectDashboard = () => {
   const { project } = useCtx();
   const { isLoading, deployments } = useDeployments(project.id);
   const [selectedBranch, setSelectedBranch] = useState<string>('All');
+  const [focused, setFocused] = useState(0);
 
   const branches = useMemo(() => {
     return getBranchesList(deployments);
   }, [deployments]);
 
+  useKeyboard(key => {
+    if (key.name === 'left' || key.name === 'h') {
+      setFocused(prev => (prev > 0 ? prev - 1 : prev));
+    }
+
+    if (key.name === 'right' || key.name === 'l') {
+      setFocused(prev => (prev < 1 ? prev + 1 : prev));
+    }
+  });
+
+  const onBranchSelect = (branch: string) => {
+    setSelectedBranch(branch);
+    setFocused(1);
+  };
+
   if (isLoading) {
     return <Loading label='Loading deployments...' />;
   }
 
+  const filteredDeployments =
+    selectedBranch === 'All'
+      ? deployments
+      : deployments.filter(d => getBranch(d) === selectedBranch);
+
+  // TODO: add bottom hint for horizontal navigation
   return (
     <box flexDirection='row' height='100%' width='100%'>
       <BranchList
         branches={branches}
-        focused={true}
-        onSelectBranch={setSelectedBranch}
+        focused={focused === 0}
+        getFocus={() => setFocused(0)}
+        onSelectBranch={onBranchSelect}
         selectedBranch={selectedBranch}
       />
-      <box flexGrow={1}>
-        <text>Middle section - Selected: {selectedBranch}</text>
-      </box>
-      <box flexGrow={1}>
-        <text>Right section</text>
-      </box>
+      <DeploymentsList
+        deployments={filteredDeployments}
+        focused={focused === 1}
+      />
     </box>
   );
 };
