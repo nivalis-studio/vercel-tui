@@ -3,10 +3,18 @@ function is(interval: number, cycle: number) {
   return cycle >= interval ? Math.floor(cycle / interval) : 0;
 }
 
-export function getTimeAgo(
-  time_: string | number | Date,
-  now = Date.now(),
-): string {
+type Opts = {
+  dateToCompare?: string | number | Date;
+  short?: boolean;
+};
+
+export function getTimeAgo(time_: string | number | Date, opts?: Opts): string {
+  const { dateToCompare, short } = opts ?? {
+    short: false,
+    dateToCompare: Date.now(),
+  };
+  const now_ = dateToCompare ?? Date.now();
+  const now = new Date(now_).getTime();
   let time = time_;
   if (typeof time === 'string' || time instanceof Date) {
     time = new Date(time).getTime();
@@ -23,33 +31,34 @@ export function getTimeAgo(
   let amt = years;
   let cycle = 'year';
 
-  if (secs <= 1) {
-    return 'just now';
-  }
   if (years > 0) {
     amt = years;
-    cycle = 'year';
+    cycle = short ? 'y' : 'year';
   } else if (months > 0) {
     amt = months;
-    cycle = 'month';
+    cycle = short ? 'M' : 'month';
   } else if (weeks > 0) {
     amt = weeks;
-    cycle = 'week';
+    cycle = short ? 'w' : 'week';
   } else if (days > 0) {
     amt = days;
-    cycle = 'day';
+    cycle = short ? 'd' : 'day';
   } else if (hours > 0) {
     amt = hours;
-    cycle = 'hour';
+    cycle = short ? 'h' : 'hour';
   } else if (mins > 0) {
     amt = mins;
-    cycle = 'minute';
+    cycle = short ? 'm' : 'minutes';
   } else if (secs > 0) {
     amt = secs;
-    cycle = 'second';
+    cycle = short ? 's' : 'second';
   }
 
   const v = Math.floor(amt);
+
+  if (short) {
+    return `${v}${cycle}`;
+  }
 
   return `${v === 1 ? (amt === hours ? 'an' : 'a') : v} ${cycle}${v > 1 ? 's' : ''} ago`;
 }
