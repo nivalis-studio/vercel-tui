@@ -6,8 +6,8 @@ import type { Modal } from './modal';
 export type Ctx = {
   content: ReactNode;
   setContent: (content: ReactNode) => void;
-  modal: Modal;
-  setModal: (modal: Modal) => void;
+  modal: Modal | null;
+  setModal: (modal: Modal | null) => void;
   error: Error | null;
   projectId: string;
   setProjectId: (projectId: string) => void;

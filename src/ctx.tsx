@@ -29,7 +29,7 @@ export const CtxProvider = ({
   renderer.setBackgroundColor(getColor('background'));
   const config = getProjectConfig();
   const [content, setContent] = useState(<ProjectDashboard />);
-  const [modal, setModal] = useState<Modal>(null);
+  const [modal, setModal] = useState<Modal | null>(null);
   const [projectId, setProjectId] = useState(config.projectId);
   const [projects, setProjects] = useState<Projects | null>(null);
   const [error, setError] = useState<Error | null>(null);

@@ -4,4 +4,4 @@ export type Modal = {
   children: ReactNode;
   key: string;
   label: string;
-} | null;
+};
