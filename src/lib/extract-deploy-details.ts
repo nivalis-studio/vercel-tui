@@ -13,14 +13,19 @@ export const getBranch = (d: Deployment) =>
 
 const MAX_COMMIT_SHA_LENGTH = 7;
 
-export const getCommit = (d: Deployment) => {
+export const getCommit = (d: Deployment, strip = true) => {
   const sha =
     d.meta?.githubCommitSha ||
     d.meta?.gitlabCommitSha ||
     d.meta?.bitbucketCommitSha ||
     d.meta?.commitSha ||
     '';
-  return sha.substring(0, MAX_COMMIT_SHA_LENGTH) || 'N/A';
+
+  if (strip) {
+    return sha.substring(0, MAX_COMMIT_SHA_LENGTH) || 'N/A';
+  }
+
+  return sha || 'N/A';
 };
 
 export const getStatusInfo = (d: Deployment, theme: Theme) => {

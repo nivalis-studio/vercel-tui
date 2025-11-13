@@ -1,8 +1,7 @@
-import { TextAttributes } from '@opentui/core';
-import open from 'open';
-import { useEffect, useState } from 'react';
+import { type ScrollBoxRenderable, TextAttributes } from '@opentui/core';
+import { useKeyboard } from '@opentui/react';
+import { useEffect, useRef, useState } from 'react';
 import { useCtx } from '@/ctx';
-import { useDeploymentDetailsShortcuts } from '@/hooks/use-deployment-shortcuts';
 import {
   getBranch,
   getCommit,
@@ -10,12 +9,98 @@ import {
   getStatusInfo,
 } from '@/lib/extract-deploy-details';
 import { getVercel } from '@/vercel';
-import type { Deployment, Project } from '@/types/vercel-sdk';
+import type { Deployment } from '@/types/vercel-sdk';
 
 type Props = {
   deployment: Deployment;
-  project: Project;
-  teamId: string;
+  focused: boolean;
+  getFocus: () => void;
+  onDeploymentUnselect: () => void;
+};
+
+export const DeploymentDetails = ({
+  focused,
+  getFocus,
+  deployment,
+  onDeploymentUnselect,
+  ...props
+}: Props) => {
+  const { getColor, ...ctx } = useCtx();
+  const status = getStatusInfo(deployment, ctx._internal_theme);
+  const branch = getBranch(deployment);
+  const commit = getCommit(deployment, false);
+  const createdAt = new Date(getCreatedAt(deployment));
+  const scrollRef = useRef<ScrollBoxRenderable | null>(null);
+
+  useKeyboard(key => {
+    if (!focused) {
+      return;
+    }
+
+    if (key.name === 'q' || key.name === 'escape' || key.name === 'esc') {
+      onDeploymentUnselect();
+      return;
+    }
+  });
+
+  return (
+    <box
+      borderColor={focused ? getColor('secondary') : getColor('borderSubtle')}
+      borderStyle='rounded'
+      flexDirection='column'
+      height='100%'
+      onMouseOver={getFocus}
+      padding={1}
+      title={deployment.uid}
+      width='25%'
+      {...props}
+    >
+      <scrollbox
+        flexDirection='column'
+        flexGrow={1}
+        overflow='scroll'
+        ref={scrollRef}
+      >
+        <box flexDirection='column' gap={1} padding={1}>
+          <box flexDirection='column'>
+            <text attributes={TextAttributes.DIM}>URL:</text>
+            <text>{deployment.url}</text>
+          </box>
+
+          <box flexDirection='column'>
+            <text attributes={TextAttributes.DIM}>Status:</text>
+            <text fg={status.fg}>{status.label}</text>
+          </box>
+
+          <box flexDirection='column'>
+            <text attributes={TextAttributes.DIM}>Branch:</text>
+            <text>{branch || 'N/A'}</text>
+          </box>
+
+          <box flexDirection='column'>
+            <text attributes={TextAttributes.DIM}>Commit:</text>
+            <text>{commit}</text>
+          </box>
+
+          <box flexDirection='column'>
+            <text attributes={TextAttributes.DIM}>Target:</text>
+            <text>{deployment.target || 'N/A'}</text>
+          </box>
+
+          <box flexDirection='column'>
+            <text attributes={TextAttributes.DIM}>Created:</text>
+            <text>{createdAt.toLocaleString()}</text>
+          </box>
+
+          <box marginTop={2}>
+            <text attributes={TextAttributes.DIM}>
+              q: back{'\n'}O: open in browser
+            </text>
+          </box>
+        </box>
+      </scrollbox>
+    </box>
+  );
 };
 
 type LogEvent = {
@@ -30,15 +115,28 @@ type LogEvent = {
   text?: string;
 };
 
-export const DeploymentDetails = ({ deployment, project, teamId }: Props) => {
-  const { getColor, ...ctx } = useCtx();
-  const status = getStatusInfo(deployment, ctx._internal_theme);
-  const branch = getBranch(deployment);
-  const commit = getCommit(deployment);
-  const createdAt = new Date(getCreatedAt(deployment));
-
+export const DeploymentLogs = ({
+  focused,
+  getFocus,
+  deployment,
+  onDeploymentUnselect,
+  ...props
+}: Props) => {
+  const { getColor, teamId } = useCtx();
+  const scrollRef = useRef<ScrollBoxRenderable | null>(null);
   const [logs, setLogs] = useState<Array<LogEvent>>([]);
   const [isLoadingLogs, setIsLoadingLogs] = useState(true);
+
+  useKeyboard(key => {
+    if (!focused) {
+      return;
+    }
+
+    if (key.name === 'q' || key.name === 'escape' || key.name === 'esc') {
+      onDeploymentUnselect();
+      return;
+    }
+  });
 
   useEffect(() => {
     const isBuilding =
@@ -71,144 +169,51 @@ export const DeploymentDetails = ({ deployment, project, teamId }: Props) => {
     fetchLogs().catch(console.error);
   }, [deployment.uid, deployment.readyState, deployment.state, teamId]);
 
-  useDeploymentDetailsShortcuts({
-    onBack: () => {
-      // This is called from parent, so no-op here
-    },
-    onOpenBrowser: () => {
-      const url = `https://vercel.com/${teamId}/${project.name}/${deployment.uid}`;
-      open(url).catch(err => console.error(err));
-    },
-  });
-
-  const buildLogs = logs.filter(
-    log =>
-      log.type === 'stdout' ||
-      log.type === 'stderr' ||
-      log.type === 'command' ||
-      log.type === 'exit',
-  );
-
   return (
-    <box flexDirection='column' flexGrow={1} padding={1}>
-      <box alignItems='flex-end' justifyContent='flex-start' marginBottom={1}>
-        <ascii-font font='tiny' text={project.name} />
-      </box>
+    <box
+      borderColor={focused ? getColor('secondary') : getColor('borderSubtle')}
+      borderStyle='rounded'
+      flexDirection='column'
+      height='100%'
+      onMouseOver={getFocus}
+      padding={1}
+      title={deployment.uid}
+      {...props}
+    >
+      <scrollbox
+        flexDirection='column'
+        flexGrow={1}
+        overflow='scroll'
+        ref={scrollRef}
+      >
+        {isLoadingLogs && (
+          <text attributes={TextAttributes.DIM}>Loading logs...</text>
+        )}
+        {!isLoadingLogs && logs.length === 0 && (
+          <text attributes={TextAttributes.DIM}>No build logs available</text>
+        )}
+        {!isLoadingLogs &&
+          logs.length > 0 &&
+          logs.map((log, index) => {
+            const logText = log.payload?.text || log.text || '';
+            const logType = log.type;
+            let fg = getColor('markdownText');
 
-      <box flexDirection='row' gap={1} height='100%'>
-        <box
-          border
-          flexDirection='column'
-          style={{ width: 40 }}
-          title='Deployment Info'
-        >
-          <box flexDirection='column' gap={1} padding={1}>
-            <box flexDirection='column'>
-              <text attributes={TextAttributes.DIM}>URL:</text>
-              <text>{deployment.url}</text>
-            </box>
+            if (logType === 'stderr') {
+              fg = getColor('error');
+            } else if (logType === 'command') {
+              fg = getColor('markdownText');
+            }
 
-            <box flexDirection='column'>
-              <text attributes={TextAttributes.DIM}>Status:</text>
-              <text fg={status.fg}>{status.label}</text>
-            </box>
+            const logKey = `${log.created || 0}-${index}`;
 
-            <box flexDirection='column'>
-              <text attributes={TextAttributes.DIM}>Branch:</text>
-              <text>{branch || 'N/A'}</text>
-            </box>
-
-            <box flexDirection='column'>
-              <text attributes={TextAttributes.DIM}>Commit:</text>
-              <text>{commit}</text>
-            </box>
-
-            <box flexDirection='column'>
-              <text attributes={TextAttributes.DIM}>Target:</text>
-              <text>{deployment.target ?? 'N/A'}</text>
-            </box>
-
-            <box flexDirection='column'>
-              <text attributes={TextAttributes.DIM}>Created:</text>
-              <text>{createdAt.toLocaleString()}</text>
-            </box>
-
-            <box marginTop={2}>
-              <text attributes={TextAttributes.DIM}>
-                BACKSPACE: back{'\n'}O: open in browser
-              </text>
-            </box>
-          </box>
-        </box>
-
-        <box
-          border
-          flexDirection='column'
-          flexGrow={1}
-          style={{ minHeight: 0 }}
-          title='Build Logs'
-        >
-          <scrollbox
-            style={{
-              rootOptions: {
-                flexGrow: 1,
-                minHeight: 0,
-                height: '100%',
-              },
-              wrapperOptions: {
-                minHeight: 0,
-                height: '100%',
-              },
-              viewportOptions: {
-                minHeight: 0,
-                height: '100%',
-              },
-              contentOptions: {
-                flexDirection: 'column',
-                gap: 0,
-                padding: 1,
-              },
-              scrollbarOptions: {
-                showArrows: true,
-                trackOptions: {
-                  foregroundColor: getColor('primary'),
-                  backgroundColor: getColor('backgroundPanel'),
-                },
-              },
-            }}
-          >
-            {isLoadingLogs && (
-              <text attributes={TextAttributes.DIM}>Loading logs...</text>
-            )}
-            {!isLoadingLogs && buildLogs.length === 0 && (
-              <text attributes={TextAttributes.DIM}>
-                No build logs available
-              </text>
-            )}
-            {!isLoadingLogs &&
-              buildLogs.length > 0 &&
-              buildLogs.map((log, index) => {
-                const logText = log.payload?.text || log.text || '';
-                const logType = log.type;
-                let fg = getColor('primary');
-
-                if (logType === 'stderr') {
-                  fg = getColor('error');
-                } else if (logType === 'command') {
-                  fg = getColor('info');
-                }
-
-                const logKey = `${log.created || 0}-${index}`;
-
-                return (
-                  <box flexDirection='row' key={logKey}>
-                    <text fg={fg}>{logText}</text>
-                  </box>
-                );
-              })}
-          </scrollbox>
-        </box>
-      </box>
+            return (
+              <box flexDirection='row' key={logKey}>
+                <text fg={fg}>{logText}</text>
+              </box>
+            );
+          })}
+      </scrollbox>
     </box>
   );
 };

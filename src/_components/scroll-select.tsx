@@ -58,13 +58,17 @@ export const ScrollSelect = ({
 
     if (key.name === 'down' || key.name === 'j') {
       setHoveredIdx(i => (i + 1) % rows.length);
+      return;
     }
 
     if (key.name === 'up' || key.name === 'k') {
       setHoveredIdx(i => (i - 1 + rows.length) % rows.length);
+      return;
     }
-    if (key.name === 'return') {
+
+    if (key.name === 'return' || key.name === 'space') {
       onSelect(hoveredIdx);
+      return;
     }
   });
 

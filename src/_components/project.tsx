@@ -7,6 +7,7 @@ import { DEFAULT_BRANCH } from '@/constants';
 import { useCtx } from '@/ctx';
 import { useDeployments } from '@/hooks/use-deployments';
 import { getBranch, getCreatedAt } from '@/lib/extract-deploy-details';
+import { DeploymentDetails, DeploymentLogs } from './deployment-details';
 import type { Deployment } from '@/types/vercel-sdk';
 
 const getBranchesList = (deployments: Array<Deployment>) => {
@@ -48,6 +49,8 @@ export const ProjectDashboard = () => {
   const { project } = useCtx();
   const { isLoading, deployments } = useDeployments(project.id);
   const [selectedBranch, setSelectedBranch] = useState<string>(DEFAULT_BRANCH);
+  const [selectedDeployment, setSelectedDeployment] =
+    useState<Deployment | null>(null);
   const [focused, setFocused] = useState(0);
 
   const branches = useMemo(() => {
@@ -69,6 +72,16 @@ export const ProjectDashboard = () => {
     setFocused(1);
   };
 
+  const onDeploymentSelect = (deployment: Deployment) => {
+    setSelectedDeployment(deployment);
+    setFocused(1);
+  };
+
+  const onDeploymentUnselect = () => {
+    setSelectedDeployment(null);
+    setFocused(1);
+  };
+
   if (isLoading) {
     return <Loading label='Loading deployments...' />;
   }
@@ -80,19 +93,39 @@ export const ProjectDashboard = () => {
 
   // TODO: add bottom hint for horizontal navigation
   return (
-    <box flexDirection='row' height='100%' width='100%'>
-      <BranchList
-        branches={branches}
-        focused={focused === 0}
-        getFocus={() => setFocused(0)}
-        onSelectBranch={onBranchSelect}
-        selectedBranch={selectedBranch}
-      />
-      <DeploymentsList
-        deployments={filteredDeployments}
-        focused={focused === 1}
-        getFocus={() => setFocused(1)}
-      />
-    </box>
+    <>
+      {selectedDeployment ? (
+        <box flexDirection='row' height='100%' width='100%'>
+          <DeploymentDetails
+            deployment={selectedDeployment}
+            focused={focused === 0}
+            getFocus={() => setFocused(0)}
+            onDeploymentUnselect={onDeploymentUnselect}
+          />
+          <DeploymentLogs
+            deployment={selectedDeployment}
+            focused={focused === 1}
+            getFocus={() => setFocused(1)}
+            onDeploymentUnselect={onDeploymentUnselect}
+          />
+        </box>
+      ) : (
+        <box flexDirection='row' height='100%' width='100%'>
+          <BranchList
+            branches={branches}
+            focused={focused === 0}
+            getFocus={() => setFocused(0)}
+            onSelectBranch={onBranchSelect}
+            selectedBranch={selectedBranch}
+          />
+          <DeploymentsList
+            deployments={filteredDeployments}
+            focused={focused === 1}
+            getFocus={() => setFocused(1)}
+            onDeploymentSelect={onDeploymentSelect}
+          />
+        </box>
+      )}
+    </>
   );
 };
