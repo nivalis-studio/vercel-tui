@@ -6,16 +6,16 @@ import type { BoxOptions, ScrollBoxRenderable } from '@opentui/core';
 export type ScrollSelectProps = {
   header?: ReactNode;
   rows: Array<ReactNode>;
-  focused: boolean;
-  getFocus: () => void;
+  focused?: boolean;
+  getFocus?: () => void;
   onSelect: (idx: number) => void;
 } & BoxOptions;
 
 export const ScrollSelect = ({
   header,
   rows,
-  focused,
-  getFocus,
+  focused = true,
+  getFocus = () => null,
   onSelect,
   ...props
 }: ScrollSelectProps) => {

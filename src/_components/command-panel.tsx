@@ -69,8 +69,6 @@ export const CommandPanel = ({ ctx }: Props) => {
 
   return (
     <ScrollSelect
-      focused
-      getFocus={() => null}
       onSelect={idx => COMMANDS[idx]?.action(ctx) ?? null}
       rows={COMMANDS.map(command => (
         <CommandPanelItem command={command} key={command.key} />

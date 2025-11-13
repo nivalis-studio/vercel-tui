@@ -30,8 +30,6 @@ export const ProjectSwitcher = () => {
 
   return (
     <ScrollSelect
-      focused={true}
-      getFocus={() => null}
       onSelect={onSelect}
       rows={sortedProjects.map(project => (
         <box
