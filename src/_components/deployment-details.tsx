@@ -1,5 +1,6 @@
 import { type ScrollBoxRenderable, TextAttributes } from '@opentui/core';
 import { useKeyboard } from '@opentui/react';
+import open from 'open';
 import { useEffect, useRef, useState } from 'react';
 import { useCtx } from '@/ctx';
 import {
@@ -41,6 +42,18 @@ export const DeploymentDetails = ({
       onDeploymentUnselect();
       return;
     }
+
+    if (key.name === 'o') {
+      const url = deployment.url;
+      if (!url) {
+        return;
+      }
+
+      open(url).catch(error => {
+        console.error('Failed to open URL:', error);
+      });
+      return;
+    }
   });
 
   return (
@@ -63,13 +76,29 @@ export const DeploymentDetails = ({
       >
         <box flexDirection='column' gap={1} padding={1}>
           <box flexDirection='column'>
+            <text attributes={TextAttributes.DIM}>Status:</text>
+            <text fg={status.fg}>{status.label}</text>
+          </box>
+
+          <box flexDirection='column'>
+            <text attributes={TextAttributes.DIM}>Created:</text>
+            <text>{createdAt.toLocaleString()}</text>
+          </box>
+
+          <box flexDirection='column'>
             <text attributes={TextAttributes.DIM}>URL:</text>
             <text>{deployment.url}</text>
           </box>
 
+          <box marginTop={-1}>
+            <text attributes={TextAttributes.DIM}>
+              Press o to open in browser
+            </text>
+          </box>
+
           <box flexDirection='column'>
-            <text attributes={TextAttributes.DIM}>Status:</text>
-            <text fg={status.fg}>{status.label}</text>
+            <text attributes={TextAttributes.DIM}>Target:</text>
+            <text>{deployment.target || 'N/A'}</text>
           </box>
 
           <box flexDirection='column'>
@@ -82,20 +111,8 @@ export const DeploymentDetails = ({
             <text>{commit}</text>
           </box>
 
-          <box flexDirection='column'>
-            <text attributes={TextAttributes.DIM}>Target:</text>
-            <text>{deployment.target || 'N/A'}</text>
-          </box>
-
-          <box flexDirection='column'>
-            <text attributes={TextAttributes.DIM}>Created:</text>
-            <text>{createdAt.toLocaleString()}</text>
-          </box>
-
           <box marginTop={2}>
-            <text attributes={TextAttributes.DIM}>
-              q: back{'\n'}O: open in browser
-            </text>
+            <text attributes={TextAttributes.DIM}>q: back</text>
           </box>
         </box>
       </scrollbox>
