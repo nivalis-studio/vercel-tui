@@ -9,7 +9,7 @@ const configSchema = z.object({
   theme: themeSchema.optional(),
 });
 
-type Config = z.infer<typeof configSchema>;
+export type Config = z.infer<typeof configSchema>;
 
 const CONFIG_DIR = path.join(os.homedir(), '.config', 'lazyvercel');
 const CONFIG_PATH = path.join(CONFIG_DIR, 'config.json');

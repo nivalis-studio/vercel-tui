@@ -1,6 +1,6 @@
 import z from 'zod';
 import defaultTheme from '@/theme/catppuccin.json' with { type: 'json' };
-import { getConfig } from './config';
+import type { Config } from './config';
 
 const THEME_KEYS = [
   'primary',
@@ -74,8 +74,6 @@ export const getThemeColor =
     return isColor ? def : (theme.defs[def as keyof Theme['defs']] as string);
   };
 
-export const getTheme = () => {
-  const config = getConfig();
-
+export const getTheme = (config?: Config | null) => {
   return config?.theme ?? defaultTheme;
 };

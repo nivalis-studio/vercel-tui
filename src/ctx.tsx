@@ -10,7 +10,7 @@ import {
 } from 'react';
 import { Panel } from '@/_components/panel';
 import { getTheme, getThemeColor } from '@/lib/colors';
-import { getProjectConfig } from '@/lib/config';
+import { getConfig, getProjectConfig } from '@/lib/config';
 import { fetchProjects as fetchProjects_ } from '@/lib/projects';
 import type { CliRenderer } from '@opentui/core';
 import type { Ctx } from '@/types/ctx';
@@ -22,7 +22,7 @@ export const CtxProvider = ({
   children,
   renderer,
 }: PropsWithChildren<{ renderer: CliRenderer }>) => {
-  const theme = getTheme();
+  const theme = getTheme(getConfig());
   const getColor = getThemeColor(theme);
   renderer.setBackgroundColor(getColor('background'));
   const config = getProjectConfig();
