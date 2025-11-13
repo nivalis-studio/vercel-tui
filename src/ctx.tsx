@@ -12,7 +12,7 @@ import { MODAL_KEYS } from '@/constants';
 import { getTheme, getThemeColor } from '@/lib/colors';
 import { getConfig, getProjectConfig } from '@/lib/config';
 import { fetchProjects as fetchProjects_ } from '@/lib/projects';
-import { ProjectDashboard } from './_components/project';
+import { ProjectDashboard } from './_components/project-dashboard';
 import type { CliRenderer } from '@opentui/core';
 import type { Ctx } from '@/types/ctx';
 import type { Modal } from '@/types/modal';
