@@ -4,22 +4,15 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { QUITTING_KEYS } from '@/constants';
 import { useCtx } from '@/ctx';
 import { useProjects } from '@/hooks/use-projects';
-import type { Project } from '@/types/vercel-sdk';
 
-type Props = {
-  teamId: string;
-  currentProjectId: string;
-  onSelect: (project: Project) => void;
-  onClose: () => void;
-};
-
-export const ProjectSwitcher = ({
-  teamId,
-  currentProjectId,
-  onSelect,
-  onClose,
-}: Props) => {
-  const { getColor } = useCtx();
+export const ProjectSwitcher = () => {
+  const {
+    getColor,
+    projectId: currentProjectId,
+    setProjectId,
+    setModal,
+    teamId,
+  } = useCtx();
   const { projects, isLoading, hasFailed, refresh } = useProjects({ teamId });
   const sortedProjects = useMemo(
     () =>
@@ -100,7 +93,7 @@ export const ProjectSwitcher = ({
 
   useKeyboard(key => {
     if (QUITTING_KEYS.includes(key.name)) {
-      onClose();
+      setModal(null);
       return;
     }
 
@@ -126,8 +119,8 @@ export const ProjectSwitcher = ({
     if (key.name === 'return') {
       const selected = sortedProjects[selectedIndex];
       if (selected) {
-        onSelect(selected);
-        onClose();
+        setProjectId(selected.id);
+        setModal(null);
       }
     }
   });

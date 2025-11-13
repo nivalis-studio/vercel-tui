@@ -63,6 +63,7 @@ export const CtxProvider = ({
       setModal({
         children: <CommandPanel ctx={ctx_} />,
         key: MODAL_KEYS.commandPanelKey,
+        label: 'Commands',
       });
       return;
     }

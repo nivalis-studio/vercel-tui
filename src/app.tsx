@@ -1,5 +1,6 @@
 import { Loading } from '@/_components/loading';
 import { useCtx } from '@/ctx';
+import { ModalWrapper } from './_components/modal-wrapper';
 import { ProjectDashboard } from './_components/project';
 
 export const ConfiguredApp = () => {
@@ -25,15 +26,13 @@ export const ConfiguredApp = () => {
 
   const content = <ProjectDashboard />;
 
-  const Modal = modal?.children ? modal.children : null;
-
   return (
     <box
       flexDirection='column'
       flexGrow={1}
       style={{ position: 'relative', minHeight: 0 }}
     >
-      {Modal}
+      {modal ? <ModalWrapper {...modal} /> : null}
       {content}
     </box>
   );

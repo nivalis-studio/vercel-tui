@@ -1,33 +1,52 @@
 import { useKeyboard } from '@opentui/react';
-import {
-  ScrollSelect,
-  type ScrollSelectProps,
-} from '@/_components/scroll-select';
+import { ScrollSelect } from '@/_components/scroll-select';
 import { MODAL_KEYS, QUITTING_KEYS } from '@/constants';
+import { ProjectSwitcher } from './project-switcher';
 import type { Ctx } from '@/types/ctx';
 
-const commands = [
+type Command = {
+  key: string;
+  label: string;
+  action: (ctx: Ctx) => void;
+};
+
+const COMMANDS: Array<Command> = [
   {
     key: 'project-switcher',
-    name: 'Project Switcher',
+    label: 'Project Switcher',
+    action: ctx => {
+      ctx.setModal({
+        children: <ProjectSwitcher />,
+        key: 'project-switcher',
+        label: 'Switch project',
+      });
+    },
   },
   {
     key: 'theme-switcher',
-    name: 'Theme Switcher',
+    label: 'Theme Switcher',
+    action: ctx => {
+      ctx.setModal({
+        children: (
+          <box>
+            <text>theme switcher</text>
+          </box>
+        ),
+        key: 'theme-switcher',
+        label: 'Switch theme',
+      });
+    },
   },
-] as const;
+];
 
 type CommandPanelItemProps = {
-  ctx: Ctx;
-  command: (typeof commands)[number];
-} & Pick<ScrollSelectProps, 'onSelect'>;
+  command: Command;
+};
 
-const CommandPanelItem = ({ command, ctx }: CommandPanelItemProps) => {
-  const { setModal } = ctx;
-
+const CommandPanelItem = ({ command }: CommandPanelItemProps) => {
   return (
-    <box padding={1}>
-      <text>{command.name}</text>
+    <box>
+      <text>{command.label}</text>
     </box>
   );
 };
@@ -37,7 +56,7 @@ type Props = {
 };
 
 export const CommandPanel = ({ ctx }: Props) => {
-  const { setModal, getColor, modal } = ctx;
+  const { setModal, modal } = ctx;
   const isFocused = modal?.key === MODAL_KEYS.commandPanelKey;
 
   useKeyboard(key => {
@@ -51,39 +70,14 @@ export const CommandPanel = ({ ctx }: Props) => {
   });
 
   return (
-    <box
-      style={{
-        position: 'absolute',
-        top: 0,
-        right: 0,
-        bottom: 0,
-        left: 0,
-        width: '100%',
-        height: '100%',
-        backgroundColor: 'transparent',
-        justifyContent: 'center',
-        alignItems: 'center',
-      }}
-    >
-      <scrollbox
-        style={{
-          width: '50%',
-          maxWidth: 100,
-          height: '40%',
-          maxHeight: 35,
-          backgroundColor: getColor('backgroundPanel'),
-        }}
-      >
-        <ScrollSelect
-          focused
-          getFocus={() => null}
-          onSelect={() => null}
-          rows={commands.map(command => (
-            <CommandPanelItem command={command} ctx={ctx} key={command.key} />
-          ))}
-          title='Command panel'
-        />
-      </scrollbox>
-    </box>
+    <ScrollSelect
+      focused
+      getFocus={() => null}
+      onSelect={idx => COMMANDS[idx]?.action(ctx) ?? null}
+      rows={COMMANDS.map(command => (
+        <CommandPanelItem command={command} key={command.key} />
+      ))}
+      title='Command panel'
+    />
   );
 };
