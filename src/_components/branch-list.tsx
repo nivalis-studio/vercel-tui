@@ -40,10 +40,6 @@ export const BranchList = ({
 
       return;
     }
-
-    if (key.name === 'space') {
-      /* TODO: behave like pressing Enter and select branch */
-    }
   });
 
   return (
