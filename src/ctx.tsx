@@ -12,6 +12,7 @@ import { MODAL_KEYS } from '@/constants';
 import { getTheme, getThemeColor } from '@/lib/colors';
 import { getConfig, getProjectConfig } from '@/lib/config';
 import { fetchProjects as fetchProjects_ } from '@/lib/projects';
+import { ProjectDashboard } from './_components/project';
 import type { CliRenderer } from '@opentui/core';
 import type { Ctx } from '@/types/ctx';
 import type { Modal } from '@/types/modal';
@@ -27,6 +28,7 @@ export const CtxProvider = ({
   const getColor = getThemeColor(theme);
   renderer.setBackgroundColor(getColor('background'));
   const config = getProjectConfig();
+  const [content, setContent] = useState(<ProjectDashboard />);
   const [modal, setModal] = useState<Modal>(null);
   const [projectId, setProjectId] = useState(config.projectId);
   const [projects, setProjects] = useState<Projects | null>(null);
@@ -44,10 +46,15 @@ export const CtxProvider = ({
   }, [refreshProjects]);
 
   const ctx_ = {
+    content,
+    setContent,
     modal,
     setModal,
     projectId,
-    setProjectId,
+    setProjectId: id => {
+      setProjectId(id);
+      setContent(<ProjectDashboard />);
+    },
     teamId: config.teamId,
     projects,
     refreshProjects,

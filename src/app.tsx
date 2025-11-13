@@ -1,10 +1,9 @@
 import { Loading } from '@/_components/loading';
 import { useCtx } from '@/ctx';
 import { ModalWrapper } from './_components/modal-wrapper';
-import { ProjectDashboard } from './_components/project';
 
 export const ConfiguredApp = () => {
-  const { error, projects, project, modal } = useCtx();
+  const { content, error, projects, project, modal } = useCtx();
 
   if (error) {
     throw error;
@@ -23,8 +22,6 @@ export const ConfiguredApp = () => {
     // TODO: if !project we should display project switcher to set one
     throw new Error('No project was selected');
   }
-
-  const content = <ProjectDashboard />;
 
   return (
     <box
