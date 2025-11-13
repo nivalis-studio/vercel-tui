@@ -59,7 +59,7 @@ export const themeSchema = z.object({
   defs: z.record(z.string(), z.string()),
   theme: z.record(
     z.enum(THEME_KEYS),
-    z.object({ dark: z.string(), light: z.string() }),
+    z.object({ dark: z.string(), light: z.string() }).or(z.string()),
   ),
 });
 
@@ -68,8 +68,8 @@ export type Theme = z.infer<typeof themeSchema>;
 export const getThemeColor =
   (theme: Theme) =>
   (key: keyof Theme['theme']): string => {
-    const def = theme.theme[key].dark;
-
+    const val = theme.theme[key];
+    const def = typeof val === 'string' ? val : val.dark;
     const isColor = def.startsWith('#');
     return isColor ? def : (theme.defs[def as keyof Theme['defs']] as string);
   };
