@@ -1,3 +1,4 @@
+import { useKeyboard } from '@opentui/react';
 import {
   createContext,
   type PropsWithChildren,
@@ -7,27 +8,14 @@ import {
   useEffect,
   useState,
 } from 'react';
-import { getThemeColor, type Theme } from '@/lib/colors';
+import { Panel } from '@/_components/panel';
+import { getThemeColor } from '@/lib/colors';
 import { getProjectConfig } from '@/lib/config';
 import { fetchProjects as fetchProjects_ } from '@/lib/projects';
 import theme from '@/theme/catppuccin.json' with { type: 'json' };
 import type { CliRenderer } from '@opentui/core';
-import type { Project, Projects } from '@/types/vercel-sdk';
-
-type Ctx = {
-  modal: ReactNode;
-  setModal: (modal: ReactNode) => void;
-  error: Error | null;
-  projectId: string;
-  setProjectId: (projectId: string) => void;
-  projects: Projects | null;
-  refreshProjects: () => Promise<void>;
-  project: Project;
-  teamId: string;
-  getColor: (color: keyof Theme['theme']) => string;
-  /** Always use `ctx.getColor` when possible */
-  _internal_theme: Theme;
-};
+import type { Ctx } from '@/types/ctx';
+import type { Projects } from '@/types/vercel-sdk';
 
 const ctx = createContext<Ctx | null>(null);
 
@@ -68,6 +56,12 @@ export const CtxProvider = ({
     // biome-ignore lint/style/noNonNullAssertion: Simpler typings, since in app we throw on undefined
     project: (projects ?? []).find(p => p.id === projectId)!,
   } satisfies Ctx;
+
+  useKeyboard(key => {
+    if (key.name === 'p' && key.ctrl) {
+      setModal(<Panel ctx={ctx_} />);
+    }
+  });
 
   return <ctx.Provider value={ctx_}>{children}</ctx.Provider>;
 };
