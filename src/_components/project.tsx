@@ -46,7 +46,7 @@ const getBranchesList = (deployments: Array<Deployment>) => {
 };
 
 export const ProjectDashboard = () => {
-  const { project } = useCtx();
+  const { project, modal } = useCtx();
   const { isLoading, deployments } = useDeployments(project.id);
   const [selectedBranch, setSelectedBranch] = useState<string>(DEFAULT_BRANCH);
   const [selectedDeployment, setSelectedDeployment] =
@@ -91,6 +91,9 @@ export const ProjectDashboard = () => {
       ? deployments
       : deployments.filter(d => getBranch(d) === selectedBranch);
 
+  const hasModal = modal !== null;
+  const isFocused = (key: 0 | 1) => (hasModal ? false : key === focused);
+
   // TODO: add bottom hint for horizontal navigation
   return (
     <>
@@ -98,13 +101,13 @@ export const ProjectDashboard = () => {
         <box flexDirection='row' height='100%' width='100%'>
           <DeploymentDetails
             deployment={selectedDeployment}
-            focused={focused === 0}
+            focused={isFocused(0)}
             getFocus={() => setFocused(0)}
             onDeploymentUnselect={onDeploymentUnselect}
           />
           <DeploymentLogs
             deployment={selectedDeployment}
-            focused={focused === 1}
+            focused={isFocused(1)}
             getFocus={() => setFocused(1)}
             onDeploymentUnselect={onDeploymentUnselect}
           />
@@ -113,14 +116,14 @@ export const ProjectDashboard = () => {
         <box flexDirection='row' height='100%' width='100%'>
           <BranchList
             branches={branches}
-            focused={focused === 0}
+            focused={isFocused(0)}
             getFocus={() => setFocused(0)}
             onSelectBranch={onBranchSelect}
             selectedBranch={selectedBranch}
           />
           <DeploymentsList
             deployments={filteredDeployments}
-            focused={focused === 1}
+            focused={isFocused(1)}
             getFocus={() => setFocused(1)}
             onDeploymentSelect={onDeploymentSelect}
           />

@@ -4,7 +4,7 @@ import {
   ScrollSelect,
   type ScrollSelectProps,
 } from '@/_components/scroll-select';
-import { DEFAULT_BRANCH } from '@/constants';
+import { DEFAULT_BRANCH, quittingKeys } from '@/constants';
 import { useCtx } from '@/ctx';
 import { getCreatedAt, getStatusInfo } from '@/lib/extract-deploy-details';
 import { getTimeAgo } from '@/lib/time-ago';
@@ -20,6 +20,7 @@ type Props = {
 
 export const BranchList = ({
   branches,
+  focused,
   selectedBranch,
   onSelectBranch,
   ...props
@@ -27,6 +28,10 @@ export const BranchList = ({
   const { getColor, ...ctx } = useCtx();
 
   useKeyboard(key => {
+    if (!focused) {
+      return;
+    }
+
     if (key.name === 'o') {
       let url = `https://vercel.com/${ctx.teamId}/${ctx.project.name}/`;
 
@@ -40,11 +45,16 @@ export const BranchList = ({
 
       return;
     }
+
+    if (quittingKeys.includes(key.name)) {
+      process.exit(0);
+    }
   });
 
   return (
     <ScrollSelect
       {...props}
+      focused={focused}
       onSelect={idx => {
         const branch = branches[idx]?.at(0);
 

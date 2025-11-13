@@ -1,5 +1,6 @@
 import { useKeyboard } from '@opentui/react';
 import { useState } from 'react';
+import { quittingKeys } from '@/constants';
 import type { CliRenderer } from '@opentui/core';
 
 type Props = {
@@ -11,6 +12,7 @@ export const useShortcuts = ({ renderer, enabled = true }: Props) => {
   const [showHelp, setShowHelp] = useState(false);
   const [showProjectPicker, setShowProjectPicker] = useState(false);
 
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: okay-ish
   useKeyboard(key => {
     if (!enabled) {
       return;
@@ -25,7 +27,7 @@ export const useShortcuts = ({ renderer, enabled = true }: Props) => {
     }
 
     if (showProjectPicker) {
-      if (key.name === 'escape' || key.name === 'backspace') {
+      if (quittingKeys.includes(key.name)) {
         setShowProjectPicker(false);
         return;
       }

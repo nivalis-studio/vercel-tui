@@ -2,6 +2,7 @@ import { type ScrollBoxRenderable, TextAttributes } from '@opentui/core';
 import { useKeyboard } from '@opentui/react';
 import open from 'open';
 import { useEffect, useRef, useState } from 'react';
+import { quittingKeys } from '@/constants';
 import { useCtx } from '@/ctx';
 import {
   getBranch,
@@ -38,7 +39,7 @@ export const DeploymentDetails = ({
       return;
     }
 
-    if (key.name === 'q' || key.name === 'escape' || key.name === 'esc') {
+    if (quittingKeys.includes(key.name)) {
       onDeploymentUnselect();
       return;
     }
@@ -149,7 +150,7 @@ export const DeploymentLogs = ({
       return;
     }
 
-    if (key.name === 'q' || key.name === 'escape' || key.name === 'esc') {
+    if (focused && quittingKeys.includes(key.name)) {
       onDeploymentUnselect();
       return;
     }

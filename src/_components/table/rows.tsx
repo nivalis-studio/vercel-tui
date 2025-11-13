@@ -43,7 +43,7 @@ export const DeploymentListRow = ({
     <box flexDirection='row' gap={1} key={'header'} width='100%'>
       {/* Time */}
       <box style={getColumnStyle(timeCol)}>
-        <text> {formatRelativeTime(createdAt)}</text>
+        <text>{formatRelativeTime(createdAt)}</text>
       </box>
 
       {/* Status */}

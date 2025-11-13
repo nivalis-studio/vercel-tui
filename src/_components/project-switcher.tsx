@@ -1,6 +1,7 @@
 import { type ScrollBoxRenderable, TextAttributes } from '@opentui/core';
 import { useKeyboard } from '@opentui/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { quittingKeys } from '@/constants';
 import { useCtx } from '@/ctx';
 import { useProjects } from '@/hooks/use-projects';
 import type { Project } from '@/types/vercel-sdk';
@@ -98,7 +99,7 @@ export const ProjectSwitcher = ({
   }, [selectedIndex, sortedProjects.length]);
 
   useKeyboard(key => {
-    if (key.name === 'escape' || key.name === 'backspace') {
+    if (quittingKeys.includes(key.name)) {
       onClose();
       return;
     }

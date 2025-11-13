@@ -1,3 +1,5 @@
+import { useKeyboard } from '@opentui/react';
+import { quittingKeys } from '@/constants';
 import { ScrollSelect, type ScrollSelectProps } from './scroll-select';
 import { DeploymentListHeader } from './table/header';
 import { DeploymentListRow } from './table/rows';
@@ -14,6 +16,16 @@ export const DeploymentsList = ({
   onDeploymentSelect,
   ...props
 }: Props) => {
+  useKeyboard(key => {
+    if (!focused) {
+      return;
+    }
+
+    if (quittingKeys.includes(key.name)) {
+      process.exit(0);
+    }
+  });
+
   return (
     <ScrollSelect
       header={<DeploymentListHeader />}
