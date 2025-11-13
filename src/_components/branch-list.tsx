@@ -65,7 +65,7 @@ export const BranchList = ({
         return (
           <box flexDirection='row' gap={1} key={branch} width='100%'>
             {isSelected ? (
-              <text fg={getColor('primary')} flexShrink={0}>
+              <text fg={getColor('accent')} flexShrink={0}>
                 {'  '}*
               </text>
             ) : (

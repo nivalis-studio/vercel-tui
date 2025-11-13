@@ -48,7 +48,7 @@ class ErrorBoundary_ extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
         >
           <box
             border
-            borderColor={getColor('borderActive')}
+            borderColor={getColor('error')}
             flexDirection='column'
             gap={1}
             padding={1}

@@ -36,7 +36,7 @@ export const Panel = ({ ctx }: Props) => {
           maxWidth: 100,
           height: '40%',
           maxHeight: 35,
-          backgroundColor: getColor('backgroundElement'),
+          backgroundColor: getColor('backgroundPanel'),
         }}
       >
         <ScrollSelect

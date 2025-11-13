@@ -95,7 +95,7 @@ export const ScrollSelect = ({
           return (
             <box
               backgroundColor={
-                isHovered ? getColor('backgroundPanel') : undefined
+                isHovered ? getColor('backgroundElement') : undefined
               }
               // biome-ignore lint/suspicious/noArrayIndexKey: .
               key={idx}
