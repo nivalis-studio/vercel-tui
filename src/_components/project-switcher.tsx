@@ -1,5 +1,7 @@
 import { TextAttributes } from '@opentui/core';
+import { useKeyboard } from '@opentui/react';
 import { useMemo } from 'react';
+import { QUITTING_KEYS } from '@/constants';
 import { useCtx } from '@/ctx';
 import { ScrollSelect } from './scroll-select';
 
@@ -27,6 +29,12 @@ export const ProjectSwitcher = () => {
     setProjectId(project.id);
     setModal(null);
   };
+
+  useKeyboard(key => {
+    if (QUITTING_KEYS.includes(key.name)) {
+      setModal(null);
+    }
+  });
 
   return (
     <ScrollSelect
