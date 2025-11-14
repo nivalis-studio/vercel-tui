@@ -17,5 +17,5 @@ export type Ctx = {
   teamId: string;
   getColor: (color: keyof Theme['theme']) => string;
   theme: Theme;
-  setTheme: (theme: ThemeName, save?: boolean) => void;
+  setTheme: (theme: ThemeName, save?: boolean) => Promise<void>;
 };

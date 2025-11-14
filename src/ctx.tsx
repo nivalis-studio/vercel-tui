@@ -46,13 +46,14 @@ export const CtxProvider = ({
     });
   }, [refreshProjects]);
 
-  const onSetTheme = (name: ThemeName, save = false) => {
+  const onSetTheme = async (name: ThemeName, save = false) => {
     const theme_ =
       name === 'custom' ? CONFIG.getCustomTheme() : THEMES_MAP[name];
 
     if (save) {
       const config = CONFIG.get();
       CONFIG.save({ ...config, theme: name });
+      await CONFIG.reload();
     }
 
     setTheme(theme_);

@@ -6,7 +6,7 @@ import { CONFIG } from '@/lib/config';
 import { ScrollSelect } from './scroll-select';
 
 export const ThemeSwitcher = () => {
-  const { setTheme, setModal } = useCtx();
+  const { setTheme, setModal, getColor } = useCtx();
 
   const current = CONFIG.get().theme;
 
@@ -22,14 +22,14 @@ export const ThemeSwitcher = () => {
     setTheme(selected);
   };
 
-  const onSelect = (idx: number) => {
+  const onSelect = async (idx: number) => {
     const selected = themes[idx];
 
     if (!selected) {
       return;
     }
 
-    setTheme(selected, true);
+    await setTheme(selected, true);
     setModal(null);
   };
 
@@ -45,16 +45,10 @@ export const ThemeSwitcher = () => {
       onHover={onHover}
       onSelect={onSelect}
       rows={themes.map(name => (
-        <box
-          alignItems='center'
-          flexDirection='row'
-          justifyContent='space-between'
-          key={name}
-        >
-          <text>
-            {current === name && '* '}
-            {name}
-          </text>
+        <box flexDirection='row' gap={1} key={name}>
+          {current === name && <text fg={getColor('primary')}>*</text>}
+
+          <text>{name}</text>
         </box>
       ))}
       title='Switch project'
