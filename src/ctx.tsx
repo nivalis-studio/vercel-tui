@@ -9,7 +9,7 @@ import {
 } from 'react';
 import { CommandPanel } from '@/_components/command-panel';
 import { MODAL_KEYS } from '@/constants';
-import { getThemeColor } from '@/lib/colors';
+import { getThemeColor, THEMES_MAP, type ThemeName } from '@/lib/colors';
 import { CONFIG } from '@/lib/config';
 import { fetchProjects as fetchProjects_ } from '@/lib/projects';
 import { ProjectDashboard } from './_components/project-dashboard';
@@ -46,6 +46,18 @@ export const CtxProvider = ({
     });
   }, [refreshProjects]);
 
+  const onSetTheme = (name: ThemeName, save = false) => {
+    const theme_ =
+      name === 'custom' ? CONFIG.getCustomTheme() : THEMES_MAP[name];
+
+    if (save) {
+      const config = CONFIG.get();
+      CONFIG.save({ ...config, theme: name });
+    }
+
+    setTheme(theme_);
+  };
+
   const ctx_ = {
     content,
     setContent,
@@ -61,7 +73,7 @@ export const CtxProvider = ({
     refreshProjects,
     error,
     getColor,
-    setTheme,
+    setTheme: onSetTheme,
     // biome-ignore lint/style/noNonNullAssertion: Simpler typings, since in app we throw on undefined
     project: (projects ?? []).find(p => p.id === projectId)!,
     theme,

@@ -9,6 +9,7 @@ export type ScrollSelectProps = {
   focused?: boolean;
   getFocus?: () => void;
   onSelect: (idx: number) => void;
+  onHover?: (idx: number) => void;
 } & BoxOptions;
 
 export const ScrollSelect = ({
@@ -17,11 +18,20 @@ export const ScrollSelect = ({
   focused = true,
   getFocus = () => null,
   onSelect,
+  onHover: onHover_,
   ...props
 }: ScrollSelectProps) => {
   const { getColor } = useCtx();
   const scrollRef = useRef<ScrollBoxRenderable | null>(null);
   const [hoveredIdx, setHoveredIdx] = useState(0);
+
+  const onHover = (idx: number) => {
+    if (onHover_) {
+      onHover_(idx);
+    }
+
+    setHoveredIdx(idx);
+  };
 
   useEffect(() => {
     const scroll = scrollRef.current;
@@ -57,12 +67,14 @@ export const ScrollSelect = ({
     }
 
     if (key.name === 'down' || key.name === 'j') {
-      setHoveredIdx(i => (i + 1) % rows.length);
+      const idx = (hoveredIdx + 1) % rows.length;
+      onHover(idx);
       return;
     }
 
     if (key.name === 'up' || key.name === 'k') {
-      setHoveredIdx(i => (i - 1 + rows.length) % rows.length);
+      const idx = (hoveredIdx - 1 + rows.length) % rows.length;
+      onHover(idx);
       return;
     }
 
@@ -100,7 +112,7 @@ export const ScrollSelect = ({
               // biome-ignore lint/suspicious/noArrayIndexKey: .
               key={idx}
               onMouseDown={() => onSelect(idx)}
-              onMouseOver={() => setHoveredIdx(idx)}
+              onMouseOver={() => onHover(idx)}
               width='100%'
             >
               {row}

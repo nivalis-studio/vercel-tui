@@ -7,10 +7,8 @@ import { THEMES_MAP, type Theme, themeNameSchema, themeSchema } from './colors';
 
 const configSchema = z.object({
   bearerToken: z.string().default('myVercelToken'),
-  theme: z
-    .union([themeSchema, themeNameSchema])
-    .optional()
-    .default('catppuccin'),
+  theme: themeNameSchema.default('catppuccin'),
+  customTheme: themeSchema.default(THEMES_MAP.catppuccin),
 });
 
 export type Config = z.infer<typeof configSchema>;
@@ -21,6 +19,7 @@ const CONFIG_PATH = path.join(CONFIG_DIR, 'config.json');
 const DEFAULT_CONFIG: Config = {
   bearerToken: 'myVercelToken',
   theme: 'catppuccin',
+  customTheme: THEMES_MAP.catppuccin,
 };
 
 const loadConfig = async () => {
@@ -75,13 +74,12 @@ export const CONFIG = {
 
     return new Vercel({ bearerToken: _config.config.bearerToken });
   },
+  getCustomTheme(): Theme {
+    return _config.config.customTheme;
+  },
   getTheme(): Theme {
     const theme = _config.config.theme;
-    if (typeof theme === 'string') {
-      return THEMES_MAP[theme];
-    }
-
-    return theme;
+    return theme === 'custom' ? this.getCustomTheme() : THEMES_MAP[theme];
   },
   isLoggedIn() {
     return _config.loggedIn;

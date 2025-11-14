@@ -8,7 +8,7 @@ export const Setup = ({ onComplete }: Props) => {
   const [error, setError] = useState('');
   const [value, setValue] = useState('');
   const config = CONFIG.get_uncheked();
-  const getColor = getThemeColor(config.theme);
+  const getColor = getThemeColor(CONFIG.getTheme());
 
   const handleSave = async (token_: string) => {
     const token = token_.trim();

@@ -49,7 +49,10 @@ export const THEMES_MAP = {
   zenburn,
 } as const;
 
-export const THEMES = Object.keys(THEMES_MAP) as Array<keyof typeof THEMES_MAP>;
+export const THEMES = [
+  'custom',
+  ...(Object.keys(THEMES_MAP) as Array<keyof typeof THEMES_MAP>),
+] as const;
 
 const THEME_KEYS = [
   'primary',
@@ -116,14 +119,13 @@ export const themeNameSchema = z.enum(THEMES);
 
 export type Theme = z.infer<typeof themeSchema>;
 
-export type ThemeOrName = Theme | (typeof THEMES)[number];
+export type ThemeName = (typeof THEMES)[number];
 
 export const getThemeColor =
-  (theme: Theme | ThemeOrName) =>
+  (theme: Theme) =>
   (key: keyof Theme['theme']): string => {
-    const theme_: Theme = typeof theme === 'string' ? THEMES_MAP[theme] : theme;
-    const val = theme_.theme[key];
+    const val = theme.theme[key];
     const def = typeof val === 'string' ? val : val.dark;
     const isColor = def.startsWith('#');
-    return isColor ? def : (theme_.defs[def as keyof Theme['defs']] as string);
+    return isColor ? def : (theme.defs[def as keyof Theme['defs']] as string);
   };

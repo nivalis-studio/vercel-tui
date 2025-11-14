@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import type { Theme } from '@/lib/colors';
+import type { Theme, ThemeName } from '@/lib/colors';
 import type { Project, Projects } from '@/types/vercel-sdk';
 import type { Modal } from './modal';
 
@@ -17,5 +17,5 @@ export type Ctx = {
   teamId: string;
   getColor: (color: keyof Theme['theme']) => string;
   theme: Theme;
-  setTheme: (theme: Theme) => void;
+  setTheme: (theme: ThemeName, save?: boolean) => void;
 };

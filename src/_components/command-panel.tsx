@@ -2,6 +2,7 @@ import { useKeyboard } from '@opentui/react';
 import { ScrollSelect } from '@/_components/scroll-select';
 import { MODAL_KEYS, QUITTING_KEYS } from '@/constants';
 import { ProjectSwitcher } from './project-switcher';
+import { ThemeSwitcher } from './theme-switcher';
 import type { Ctx } from '@/types/ctx';
 
 type Command = {
@@ -26,11 +27,7 @@ const COMMANDS: Array<Command> = [
     label: 'Theme Switcher',
     action: ctx => {
       ctx.setModal({
-        children: (
-          <box>
-            <text>theme switcher</text>
-          </box>
-        ),
+        children: <ThemeSwitcher />,
         key: 'theme-switcher',
       });
     },
