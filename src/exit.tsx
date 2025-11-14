@@ -9,6 +9,10 @@ export const ExitProvider = ({ children }: { children: ReactNode }) => {
       exit(0);
     }
 
+    if (key.name === 'c' && key.ctrl) {
+      exit(0);
+    }
+
     if (key.name === 'k' && key.ctrl) {
       renderer.console.toggle();
     }
