@@ -46,8 +46,7 @@ export const ThemeSwitcher = () => {
       onSelect={onSelect}
       rows={themes.map(name => (
         <box flexDirection='row' gap={1} key={name}>
-          {current === name && <text fg={getColor('primary')}>*</text>}
-
+          {current === name && <text fg={getColor('accent')}>*</text>}
           <text>{name}</text>
         </box>
       ))}

@@ -1,4 +1,3 @@
-import { TextAttributes } from '@opentui/core';
 import { useKeyboard } from '@opentui/react';
 import { useMemo } from 'react';
 import { QUITTING_KEYS } from '@/constants';
@@ -11,6 +10,7 @@ export const ProjectSwitcher = () => {
     projects,
     setProjectId,
     setModal,
+    getColor,
   } = useCtx();
   const sortedProjects = useMemo(
     () =>
@@ -39,28 +39,16 @@ export const ProjectSwitcher = () => {
   return (
     <ScrollSelect
       onSelect={onSelect}
-      rows={sortedProjects.map(project => (
-        <box
-          alignItems='center'
-          flexDirection='row'
-          justifyContent='space-between'
-          key={project.id}
-        >
-          <text
-            attributes={
-              project.id === currentProjectId
-                ? TextAttributes.INVERSE
-                : TextAttributes.BOLD
-            }
-          >
-            {project.name}
-          </text>
-          {project.id === currentProjectId ? (
-            <text attributes={TextAttributes.DIM}>Current</text>
-          ) : null}
-          <text attributes={TextAttributes.DIM}>{project.id}</text>
-        </box>
-      ))}
+      rows={sortedProjects.map(project => {
+        const isCurrent = project.id === currentProjectId;
+
+        return (
+          <box alignItems='center' flexDirection='row' gap={1} key={project.id}>
+            {isCurrent && <text fg={getColor('accent')}>*</text>}
+            <text>{project.name}</text>
+          </box>
+        );
+      })}
       title='Switch project'
     />
   );
