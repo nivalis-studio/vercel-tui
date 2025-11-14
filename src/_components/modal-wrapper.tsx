@@ -4,6 +4,8 @@ import type { Modal } from '@/types/modal';
 export const ModalWrapper = ({ children }: Modal) => {
   const { getColor } = useCtx();
 
+  const Component = children;
+
   return (
     <box
       style={{
@@ -28,7 +30,7 @@ export const ModalWrapper = ({ children }: Modal) => {
           backgroundColor: getColor('backgroundPanel'),
         }}
       >
-        {children}
+        <Component />
       </scrollbox>
     </box>
   );

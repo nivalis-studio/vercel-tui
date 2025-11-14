@@ -3,8 +3,9 @@ import { useMemo } from 'react';
 import { QUITTING_KEYS } from '@/constants';
 import { useCtx } from '@/ctx';
 import { ScrollSelect } from './scroll-select';
+import type { Modal } from '@/types/modal';
 
-export const ProjectSwitcher = () => {
+const ProjectSwitcher = () => {
   const {
     projectId: currentProjectId,
     projects,
@@ -53,3 +54,7 @@ export const ProjectSwitcher = () => {
     />
   );
 };
+export const ProjectSwitcherModal: Modal = {
+  children: ProjectSwitcher,
+  key: 'theme-switcher',
+} as const;

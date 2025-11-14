@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
 export type Modal = {
-  children: ReactNode;
+  children: () => ReactNode;
   key: string;
 };

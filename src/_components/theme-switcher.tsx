@@ -4,16 +4,15 @@ import { useCtx } from '@/ctx';
 import { THEMES } from '@/lib/colors';
 import { CONFIG } from '@/lib/config';
 import { ScrollSelect } from './scroll-select';
+import type { Modal } from '@/types/modal';
 
-export const ThemeSwitcher = () => {
+const ThemeSwitcher = () => {
   const { setTheme, setModal, getColor } = useCtx();
 
   const current = CONFIG.get().theme;
 
-  const themes = THEMES;
-
   const onHover = (idx: number) => {
-    const selected = themes[idx];
+    const selected = THEMES[idx];
 
     if (!selected) {
       return;
@@ -23,7 +22,7 @@ export const ThemeSwitcher = () => {
   };
 
   const onSelect = async (idx: number) => {
-    const selected = themes[idx];
+    const selected = THEMES[idx];
 
     if (!selected) {
       return;
@@ -44,7 +43,7 @@ export const ThemeSwitcher = () => {
     <ScrollSelect
       onHover={onHover}
       onSelect={onSelect}
-      rows={themes.map(name => (
+      rows={THEMES.map(name => (
         <box flexDirection='row' gap={1} key={name}>
           {current === name && <text fg={getColor('accent')}>*</text>}
           <text>{name}</text>
@@ -54,3 +53,8 @@ export const ThemeSwitcher = () => {
     />
   );
 };
+
+export const ThemeSwitcherModal: Modal = {
+  children: ThemeSwitcher,
+  key: 'theme-switcher',
+} as const;

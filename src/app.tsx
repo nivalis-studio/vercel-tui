@@ -1,9 +1,11 @@
 import { Loading } from '@/_components/loading';
 import { useCtx } from '@/ctx';
 import { ModalWrapper } from './_components/modal-wrapper';
+import { useCommands } from './hooks/use-commands';
 
 export const ConfiguredApp = () => {
   const { content, error, projects, project, modal } = useCtx();
+  useCommands();
 
   if (error) {
     throw error;

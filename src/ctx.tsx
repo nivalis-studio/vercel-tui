@@ -7,8 +7,7 @@ import {
   useEffect,
   useState,
 } from 'react';
-import { CommandPanel } from '@/_components/command-panel';
-import { MODAL_KEYS } from '@/constants';
+import { CommandPanelModal } from '@/_components/command-panel';
 import { getThemeColor, THEMES_MAP, type ThemeName } from '@/lib/colors';
 import { CONFIG } from '@/lib/config';
 import { fetchProjects as fetchProjects_ } from '@/lib/projects';
@@ -16,8 +15,8 @@ import { ProjectDashboard } from './_components/project-dashboard';
 import { getCurrentProjectData } from './lib/current-project';
 import type { CliRenderer } from '@opentui/core';
 import type { Ctx } from '@/types/ctx';
-import type { Modal } from '@/types/modal';
 import type { Projects } from '@/types/vercel-sdk';
+import type { Modal } from './types/modal';
 
 const ctx = createContext<Ctx | null>(null);
 
@@ -82,10 +81,7 @@ export const CtxProvider = ({
 
   useKeyboard(key => {
     if (key.ctrl && key.name === 'p') {
-      setModal({
-        children: <CommandPanel ctx={ctx_} />,
-        key: MODAL_KEYS.commandPanelKey,
-      });
+      setModal(CommandPanelModal);
       return;
     }
 

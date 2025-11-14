@@ -1,38 +1,9 @@
 import { useKeyboard } from '@opentui/react';
 import { ScrollSelect } from '@/_components/scroll-select';
-import { MODAL_KEYS, QUITTING_KEYS } from '@/constants';
-import { ProjectSwitcher } from './project-switcher';
-import { ThemeSwitcher } from './theme-switcher';
-import type { Ctx } from '@/types/ctx';
-
-type Command = {
-  key: string;
-  label: string;
-  action: (ctx: Ctx) => void;
-};
-
-const COMMANDS: Array<Command> = [
-  {
-    key: 'project-switcher',
-    label: 'Project Switcher',
-    action: ctx => {
-      ctx.setModal({
-        children: <ProjectSwitcher />,
-        key: 'project-switcher',
-      });
-    },
-  },
-  {
-    key: 'theme-switcher',
-    label: 'Theme Switcher',
-    action: ctx => {
-      ctx.setModal({
-        children: <ThemeSwitcher />,
-        key: 'theme-switcher',
-      });
-    },
-  },
-];
+import { QUITTING_KEYS } from '@/constants';
+import { useCtx } from '@/ctx';
+import { COMMANDS, type Command } from '@/lib/commands';
+import type { Modal } from '@/types/modal';
 
 type CommandPanelItemProps = {
   command: Command;
@@ -46,21 +17,12 @@ const CommandPanelItem = ({ command }: CommandPanelItemProps) => {
   );
 };
 
-type Props = {
-  ctx: Ctx;
-};
-
-export const CommandPanel = ({ ctx }: Props) => {
-  const { setModal, modal } = ctx;
-  const isFocused = modal?.key === MODAL_KEYS.commandPanelKey;
+const CommandPanel = () => {
+  const ctx = useCtx();
 
   useKeyboard(key => {
-    if (!isFocused) {
-      return;
-    }
-
     if (QUITTING_KEYS.includes(key.name)) {
-      setModal(null);
+      ctx.setModal(null);
     }
   });
 
@@ -68,9 +30,14 @@ export const CommandPanel = ({ ctx }: Props) => {
     <ScrollSelect
       onSelect={idx => COMMANDS[idx]?.action(ctx) ?? null}
       rows={COMMANDS.map(command => (
-        <CommandPanelItem command={command} key={command.key} />
+        <CommandPanelItem command={command} key={command.label} />
       ))}
       title='Command panel'
     />
   );
 };
+
+export const CommandPanelModal: Modal = {
+  children: CommandPanel,
+  key: 'command-panel',
+} as const;
