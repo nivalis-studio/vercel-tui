@@ -119,6 +119,17 @@ The repo uses Lefthook for git hooks (`bun run prepare`) and Biome for formattin
 
 Bug reports and pull requests are welcome! See [CONTRIBUTING.md](./CONTRIBUTING.md) for the recommended workflow, coding standards, and release checklist.
 
+## Roadmap ideas
+
+The following ideas are on our radar for future releases. Contributions or feedback on any of them are welcome:
+
+- **Alerting & notifications** – opt-in desktop notifications or webhooks when deployments finish or fail
+- **Deployment actions** – redeploy, cancel builds, or promote previews directly from the TUI when scopes allow
+- **Environment insights** – surface env vars, targets, and config diffs per deployment for easier debugging
+- **Audit timeline** – show rollbacks, config changes, and deployment history grouped by branch/environment
+- **Search & saved filters** – fuzzy-search deployments by commit, author, or status and store reusable filters
+- **Team collaboration hooks** – generate shareable status snippets or push updates to Slack/Discord automatically
+
 ## License
 
 MIT
