@@ -1,3 +1,4 @@
+import z from 'zod';
 import { CONFIG } from '@/lib/config';
 import type { Project } from '@/types/vercel-sdk';
 
@@ -20,8 +21,15 @@ export const fetchProjects = async (teamId: string) => {
   const response = await fetch(full, options);
 
   if (!response.ok) {
-    const cause = await response.json();
-    throw new Error('Failed to fetch projects', { cause });
+    const error = await response.json();
+
+    const { data: parsed } = z
+      .object({ error: z.object({ message: z.string() }) })
+      .safeParse(error);
+
+    throw new Error('Failed to fetch projects', {
+      cause: parsed?.error.message,
+    });
   }
 
   const data = (await response.json()) as { projects: Array<Project> };
