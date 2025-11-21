@@ -20,8 +20,13 @@ export const fetchProjects = async (teamId: string) => {
   const response = await fetch(full, options);
 
   if (!response.ok) {
-    const cause = await response.json();
-    throw new Error('Failed to fetch projects', { cause });
+    const { error } = (await response.json()) as {
+      error: { code: string; message: string };
+    };
+
+    throw new Error(`Failed to fetch projects, ${error.code}`, {
+      cause: error.message,
+    });
   }
 
   const data = (await response.json()) as { projects: Array<Project> };
