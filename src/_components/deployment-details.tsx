@@ -125,6 +125,9 @@ type LogEvent = {
   type: string;
   created?: number;
   payload?: {
+    created?: number;
+    date?: number;
+    serial?: string;
     text?: string;
     info?: {
       type?: string;
@@ -168,16 +171,140 @@ export const DeploymentLogs = ({
       deployment.state === 'INITIALIZING' ||
       deployment.state === 'QUEUED';
 
-    let cancelled: true | false = false;
+    let cancelled = false;
+    let stopStreaming: (() => void) | undefined;
 
-    // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: okay-ish
+    const appendLogs = (newEntries: Array<LogEvent>) => {
+      if (cancelled || newEntries.length === 0) {
+        return;
+      }
+
+      setLogs(previous => [...previous, ...newEntries]);
+    };
+
+    const getLatestTimestamp = (events: Array<LogEvent>) =>
+      events.reduce((latest, event) => {
+        if (typeof event.created === 'number') {
+          return Math.max(latest, event.created);
+        }
+
+        if (typeof event.payload?.created === 'number') {
+          return Math.max(latest, event.payload.created);
+        }
+
+        return latest;
+      }, 0);
+
+    const startStreamingLogs = async (since?: number) => {
+      try {
+        const { bearerToken } = CONFIG.get();
+
+        const params = new URLSearchParams({
+          follow: '1',
+          limit: '-1',
+        });
+
+        if (teamId) {
+          params.set('teamId', teamId);
+        }
+
+        if (typeof since === 'number' && Number.isFinite(since) && since > 0) {
+          params.set('since', String(since));
+        }
+
+        const controller = new AbortController();
+        stopStreaming = () => controller.abort();
+
+        const response = await fetch(
+          `https://api.vercel.com/v3/deployments/${deployment.uid}/events?${params.toString()}`,
+          {
+            headers: {
+              Authorization: `Bearer ${bearerToken}`,
+              Accept: 'application/stream+json',
+            },
+            signal: controller.signal,
+          },
+        );
+
+        if (cancelled || !response.body) {
+          return;
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        const handleSegment = (segment: string) => {
+          const dataLines = segment
+            .split('\n')
+            .filter(line => line.startsWith('data:'))
+            .map(line => line.slice(5).trim())
+            .filter(Boolean);
+
+          if (dataLines.length === 0) {
+            return;
+          }
+
+          const payload = dataLines.join('\n');
+
+          if (!payload || payload === '[DONE]') {
+            return;
+          }
+
+          try {
+            const parsed = JSON.parse(payload);
+            const entries = (Array.isArray(parsed) ? parsed : [parsed]).filter(
+              (entry): entry is LogEvent =>
+                Boolean(entry) && typeof entry === 'object',
+            );
+
+            appendLogs(entries);
+          } catch (error) {
+            console.error('Failed to parse streamed log event:', error);
+          }
+        };
+
+        while (!cancelled) {
+          // biome-ignore lint/performance/noAwaitInLoops: .
+          const { done, value } = await reader.read();
+
+          if (done) {
+            break;
+          }
+
+          buffer += decoder.decode(value, { stream: true });
+          const segments = buffer.split('\n\n');
+          buffer = segments.pop() ?? '';
+
+          for (const segment of segments) {
+            handleSegment(segment);
+          }
+        }
+
+        if (buffer) {
+          const trailingSegments = buffer.split('\n\n');
+          for (const segment of trailingSegments) {
+            handleSegment(segment);
+          }
+        }
+      } catch (error) {
+        if ((error as Error)?.name === 'AbortError') {
+          return;
+        }
+
+        if (!cancelled) {
+          console.error('Failed to stream logs:', error);
+        }
+      }
+    };
+
     const fetchLogs = async () => {
       try {
         const vercel = CONFIG.getVercel();
         const response = await vercel.deployments.getDeploymentEvents({
           idOrUrl: deployment.uid,
           teamId,
-          follow: isBuilding ? 1 : 0,
+          follow: 0,
           limit: -1,
         });
 
@@ -185,9 +312,18 @@ export const DeploymentLogs = ({
           return;
         }
 
-        const events = Array.isArray(response) ? response : [];
-        setLogs(events as Array<LogEvent>);
+        const events = Array.isArray(response)
+          ? (response as Array<LogEvent>)
+          : [];
+        setLogs(events);
         setIsLoadingLogs(false);
+
+        if (isBuilding) {
+          const latestTimestamp = getLatestTimestamp(events);
+          startStreamingLogs(latestTimestamp).catch(streamError => {
+            console.error('Failed to start log stream:', streamError);
+          });
+        }
       } catch (error) {
         if (!cancelled) {
           console.error('Failed to fetch logs:', error);
@@ -200,6 +336,7 @@ export const DeploymentLogs = ({
 
     return () => {
       cancelled = true;
+      stopStreaming?.();
     };
   }, [deployment.uid, deployment.readyState, deployment.state, teamId]);
 
