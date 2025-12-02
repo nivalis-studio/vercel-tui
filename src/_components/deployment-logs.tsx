@@ -80,6 +80,8 @@ export const DeploymentLogs = ({
         flexGrow={1}
         overflow='scroll'
         ref={scrollRef}
+        stickyScroll
+        stickyStart='bottom'
       >
         {loading && (
           <text attributes={TextAttributes.DIM}>Loading logs...</text>
