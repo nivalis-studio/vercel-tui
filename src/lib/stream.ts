@@ -47,15 +47,13 @@ export async function* getStreamObjects<T>({ schema, url, options }: Props<T>) {
 
         try {
           raw = JSON.parse(trimmed);
-        } catch (error) {
-          await reader.cancel(error);
-          throw new Error(`Invalid JSON from stream: ${trimmed}`);
+        } catch {
+          continue;
         }
-        console.log(raw);
         const parsed = schema.safeParse(raw);
 
         if (!parsed.success) {
-          await reader.cancel(parsed.error);
+          continue;
         }
 
         yield parsed.data;
