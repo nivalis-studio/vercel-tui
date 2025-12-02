@@ -6,6 +6,8 @@ type Props<T> = {
   url: string;
   options?: RequestInit;
 };
+
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: required
 export async function* getStreamObjects<T>({ schema, url, options }: Props<T>) {
   const res = await fetch(url, options);
 
@@ -49,6 +51,7 @@ export async function* getStreamObjects<T>({ schema, url, options }: Props<T>) {
           await reader.cancel(error);
           throw new Error(`Invalid JSON from stream: ${trimmed}`);
         }
+        console.log(raw);
         const parsed = schema.safeParse(raw);
 
         if (!parsed.success) {
