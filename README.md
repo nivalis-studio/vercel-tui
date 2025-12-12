@@ -119,16 +119,23 @@ The repo uses Lefthook for git hooks (`bun run prepare`) and Biome for formattin
 
 Bug reports and pull requests are welcome! See [CONTRIBUTING.md](./CONTRIBUTING.md) for the recommended workflow, coding standards, and release checklist.
 
-## Roadmap ideas
+## TODO
 
 The following ideas are on our radar for future releases. Contributions or feedback on any of them are welcome:
 
-- **Alerting & notifications** – opt-in desktop notifications or webhooks when deployments finish or fail
+- **Watch mode** – follow a deployment’s logs until it finishes (READY/ERROR), then stop automatically
+- **Better status surface** – footer/status line with project, branch filter, last refresh time, and key shortcuts
+- **Richer filtering** – quick filters (building/failed/succeeded), search by commit/author/message, saved filters
+- **Multi-project workflows** – support `--project` / `--team` flags and remember the last selected project per repo
+- **Onboarding polish** – open token page from Setup and show clearer messages for token scope/team mismatches
+- **Resilience** – retries/backoff for 429/5xx, and short TTL caching for projects/deployments to speed startup
 - **Deployment actions** – redeploy, cancel builds, or promote previews directly from the TUI when scopes allow
 - **Environment insights** – surface env vars, targets, and config diffs per deployment for easier debugging
 - **Audit timeline** – show rollbacks, config changes, and deployment history grouped by branch/environment
-- **Search & saved filters** – fuzzy-search deployments by commit, author, or status and store reusable filters
-- **Team collaboration hooks** – generate shareable status snippets or push updates to Slack/Discord automatically
+- **Collaboration hooks** – generate shareable status snippets or push updates to Slack/Discord
+- **Non-TUI mode** – `--help` / `--version` / basic text output for CI and issue reports
+- **Debugging tooling** – structured debug logs behind `DEBUG=lazyvercel` and an in-UI “last error” panel
+- **Docs alignment** – ensure README matches the supported runtime and recommended `npx` usage
 
 ## License
 
