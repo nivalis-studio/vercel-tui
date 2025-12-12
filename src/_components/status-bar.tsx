@@ -20,7 +20,7 @@ export const StatusBar = ({
   isRefreshing,
   view,
 }: Props) => {
-  const { getColor, project } = useCtx();
+  const { getColor, lastError, project } = useCtx();
 
   const branchLabel =
     selectedBranch === DEFAULT_BRANCH ? 'all' : selectedBranch || 'all';
@@ -62,11 +62,19 @@ export const StatusBar = ({
       </box>
 
       <box alignItems='center' flexDirection='row' gap={2}>
+        {lastError ? (
+          <text fg={getColor('error')} wrapMode='none'>
+            Error
+          </text>
+        ) : null}
         <text fg={isRefreshing ? getColor('warning') : getColor('textMuted')}>
           {isRefreshing ? 'Refreshing...' : `Refreshed: ${refreshedLabel}`}
         </text>
         <text fg={getColor('textMuted')} wrapMode='none'>
           Ctrl+P palette
+        </text>
+        <text fg={getColor('textMuted')} wrapMode='none'>
+          Ctrl+E error
         </text>
         <text fg={getColor('textMuted')} wrapMode='none'>
           r refresh

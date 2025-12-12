@@ -6,11 +6,10 @@ import type { Deployments } from '@/types/vercel-sdk';
 const REFETCH_INTERVAL_MS = 10_000;
 
 export const useDeployments = (projectId: string) => {
-  const { teamId } = useCtx();
+  const { teamId, setLastError } = useCtx();
   const [isLoading, setIsLoading] = useState(true);
   const [deployments, setDeployments] = useState<Deployments>([]);
   const [lastRefreshedAt, setLastRefreshedAt] = useState<number | null>(null);
-  const [error, setError] = useState<Error | null>(null);
 
   const fetchDeployment = useCallback(async () => {
     setIsLoading(true);
@@ -24,9 +23,12 @@ export const useDeployments = (projectId: string) => {
     }
   }, [teamId, projectId]);
 
-  const handleErr = useCallback((err: unknown) => {
-    setError(err instanceof Error ? err : new Error(String(err)));
-  }, []);
+  const handleErr = useCallback(
+    (err: unknown) => {
+      setLastError(err instanceof Error ? err : new Error(String(err)));
+    },
+    [setLastError],
+  );
 
   useEffect(() => {
     fetchDeployment().catch(handleErr);
@@ -38,10 +40,6 @@ export const useDeployments = (projectId: string) => {
 
     return () => clearInterval(interval);
   }, [fetchDeployment, handleErr]);
-
-  if (error) {
-    throw error;
-  }
 
   return {
     isLoading: isLoading && !deployments.length,

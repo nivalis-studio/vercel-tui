@@ -45,16 +45,20 @@ const CtxProviderInner = ({
   const [modal, setModal] = useState<Modal | null>(null);
   const [projectId, setProjectId] = useState(projectId_);
   const [projects, setProjects] = useState<Projects | null>(null);
-  const [error, setError] = useState<Error | null>(null);
+  const [lastError, setLastError] = useState<Error | null>(null);
 
   const refreshProjects = useCallback(async () => {
-    const projects_ = await fetchProjects_(teamId);
-    setProjects(projects_);
+    try {
+      const projects_ = await fetchProjects_(teamId);
+      setProjects(projects_);
+    } catch (err) {
+      setLastError(err instanceof Error ? err : new Error(String(err)));
+    }
   }, [teamId]);
 
   useEffect(() => {
     refreshProjects().catch(err => {
-      setError(err instanceof Error ? err : new Error(String(err)));
+      setLastError(err instanceof Error ? err : new Error(String(err)));
     });
   }, [refreshProjects]);
 
@@ -84,7 +88,9 @@ const CtxProviderInner = ({
     teamId,
     projects,
     refreshProjects,
-    error,
+    lastError,
+    setLastError,
+    clearLastError: () => setLastError(null),
     getColor,
     setTheme: onSetTheme,
     project: (projects ?? []).find(p => p.id === projectId) ?? null,
@@ -99,7 +105,7 @@ const CtxProviderInner = ({
 
     if (key.ctrl && key.name === 'r') {
       refreshProjects().catch(err => {
-        setError(err instanceof Error ? err : new Error(String(err)));
+        setLastError(err instanceof Error ? err : new Error(String(err)));
       });
       return;
     }

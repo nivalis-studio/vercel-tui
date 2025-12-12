@@ -8,7 +8,9 @@ export type Ctx = {
   setContent: (content: ReactNode) => void;
   modal: Modal | null;
   setModal: (modal: Modal | null) => void;
-  error: Error | null;
+  lastError: Error | null;
+  setLastError: (error: Error | null) => void;
+  clearLastError: () => void;
   projectId: string;
   setProjectId: (projectId: string) => void;
   projects: Projects | null;

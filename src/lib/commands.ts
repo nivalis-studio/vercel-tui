@@ -1,3 +1,4 @@
+import { LastErrorModal } from '@/_components/last-error';
 import { ProjectSwitcherModal } from '@/_components/project-switcher';
 import { ThemeSwitcherModal } from '@/_components/theme-switcher';
 import type { ParsedKey } from '@opentui/core';
@@ -21,6 +22,19 @@ export const COMMANDS: Array<Command> = [
     label: 'Theme Switcher',
     action: ctx => {
       ctx.setModal(ThemeSwitcherModal);
+    },
+  },
+  {
+    keys: [{ name: 'e', ctrl: true }],
+    label: 'Show Last Error',
+    action: ctx => {
+      ctx.setModal(LastErrorModal);
+    },
+  },
+  {
+    label: 'Clear Last Error',
+    action: ctx => {
+      ctx.clearLastError();
     },
   },
 ];

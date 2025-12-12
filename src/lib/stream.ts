@@ -1,4 +1,6 @@
 /** biome-ignore-all lint/performance/noAwaitInLoops: . */
+
+import { createDebug } from '@/lib/debug';
 import type { ZodType } from 'zod';
 
 type Props<T> = {
@@ -7,11 +9,15 @@ type Props<T> = {
   options?: RequestInit;
 };
 
+const debug = createDebug('lazyvercel:stream');
+
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: required
 export async function* getStreamObjects<T>({ schema, url, options }: Props<T>) {
+  debug('open', { url });
   const res = await fetch(url, options);
 
   if (!res.ok) {
+    debug('http error', { status: res.status, url });
     throw new Error(`HTTP error! status: ${res.status}`);
   }
 

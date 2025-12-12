@@ -8,17 +8,39 @@ import { ModalWrapper } from './_components/modal-wrapper';
 import { useCommands } from './hooks/use-commands';
 
 export const ConfiguredApp = () => {
-  const { content, error, projects, project, modal } = useCtx();
+  const { content, getColor, lastError, projects, project, modal } = useCtx();
   useCommands();
-
-  if (error) {
-    throw error;
-  }
 
   let body = content;
 
   if (projects === null) {
-    body = <Loading label='Loading projects...' />;
+    body = lastError ? (
+      <box alignItems='center' flexGrow={1} justifyContent='center'>
+        <box
+          borderColor={getColor('error')}
+          borderStyle='rounded'
+          flexDirection='column'
+          gap={1}
+          style={{
+            paddingLeft: 2,
+            paddingRight: 2,
+            paddingTop: 1,
+            paddingBottom: 1,
+            maxWidth: 100,
+            width: '70%',
+          }}
+        >
+          <text fg={getColor('error')} wrapMode='word'>
+            Failed to load projects: {lastError.message}
+          </text>
+          <text fg={getColor('textMuted')} wrapMode='word'>
+            Ctrl+R retry, Ctrl+E details
+          </text>
+        </box>
+      </box>
+    ) : (
+      <Loading label='Loading projects...' />
+    );
   } else if (projects.length === 0) {
     body = <NoProjectsFound />;
   } else if (project === null) {

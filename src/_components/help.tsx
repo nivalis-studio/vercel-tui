@@ -26,6 +26,7 @@ export function HelpPanel() {
               Q / ESC Quit application
             </text>
             <text attributes={TextAttributes.DIM}>Ctrl+K Toggle console</text>
+            <text attributes={TextAttributes.DIM}>Ctrl+E Show last error</text>
           </box>
 
           <box flexDirection='column' marginBottom={1}>
