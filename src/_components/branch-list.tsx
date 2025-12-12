@@ -26,7 +26,7 @@ export const BranchList = ({
   onSelectBranch,
   ...props
 }: Props) => {
-  const { getColor, ...ctx } = useCtx();
+  const { getColor, project, teamId, theme } = useCtx();
 
   useKeyboard(key => {
     if (!focused) {
@@ -34,7 +34,11 @@ export const BranchList = ({
     }
 
     if (key.name === 'o') {
-      let url = `https://vercel.com/${ctx.teamId}/${ctx.project.name}/`;
+      if (!project) {
+        return;
+      }
+
+      let url = `https://vercel.com/${teamId}/${project.name}/`;
 
       if (selectedBranch && selectedBranch !== DEFAULT_BRANCH) {
         url += `deployments?catchAll=deployments&filterBranch=${selectedBranch}`;
@@ -71,7 +75,7 @@ export const BranchList = ({
           short: true,
         });
 
-        const { icon, fg } = getStatusInfo(lastDeployment, ctx.theme);
+        const { icon, fg } = getStatusInfo(lastDeployment, theme);
 
         return (
           <box flexDirection='row' gap={1} key={branch} width='100%'>
