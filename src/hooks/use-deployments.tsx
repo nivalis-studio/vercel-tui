@@ -9,13 +9,19 @@ export const useDeployments = (projectId: string) => {
   const { teamId } = useCtx();
   const [isLoading, setIsLoading] = useState(true);
   const [deployments, setDeployments] = useState<Deployments>([]);
+  const [lastRefreshedAt, setLastRefreshedAt] = useState<number | null>(null);
   const [error, setError] = useState<Error | null>(null);
 
   const fetchDeployment = useCallback(async () => {
     setIsLoading(true);
-    const deployments_ = await fetchProjectDeployments(projectId, teamId);
-    setDeployments(deployments_);
-    setIsLoading(false);
+
+    try {
+      const deployments_ = await fetchProjectDeployments(projectId, teamId);
+      setDeployments(deployments_);
+      setLastRefreshedAt(Date.now());
+    } finally {
+      setIsLoading(false);
+    }
   }, [teamId, projectId]);
 
   const handleErr = useCallback((err: unknown) => {
@@ -39,7 +45,9 @@ export const useDeployments = (projectId: string) => {
 
   return {
     isLoading: isLoading && !deployments.length,
+    isRefreshing: isLoading && deployments.length > 0,
     deployments,
+    lastRefreshedAt,
     refresh: fetchDeployment,
   };
 };

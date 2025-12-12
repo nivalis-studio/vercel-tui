@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react';
 import { BranchList } from '@/_components/branch-list';
 import { DeploymentsList } from '@/_components/deployments-list';
 import { Loading } from '@/_components/loading';
+import { StatusBar } from '@/_components/status-bar';
 import { DEFAULT_BRANCH } from '@/constants';
 import { useCtx } from '@/ctx';
 import { useDeployments } from '@/hooks/use-deployments';
@@ -56,7 +57,8 @@ const ProjectDashboardInner = ({
   projectId: string;
   modal: unknown;
 }) => {
-  const { isLoading, deployments } = useDeployments(projectId);
+  const { isLoading, isRefreshing, deployments, lastRefreshedAt, refresh } =
+    useDeployments(projectId);
   const [selectedBranch, setSelectedBranch] = useState<string>(DEFAULT_BRANCH);
   const [selectedDeployment, setSelectedDeployment] =
     useState<Deployment | null>(null);
@@ -69,10 +71,17 @@ const ProjectDashboardInner = ({
   useKeyboard(key => {
     if (key.name === 'left' || key.name === 'h') {
       setFocused(prev => (prev > 0 ? prev - 1 : prev));
+      return;
     }
 
     if (key.name === 'right' || key.name === 'l') {
       setFocused(prev => (prev < 1 ? prev + 1 : prev));
+      return;
+    }
+
+    // Force refresh (matches README).
+    if (key.name === 'r' && modal === null) {
+      refresh().catch(err => console.error(err));
     }
   });
 
@@ -103,42 +112,52 @@ const ProjectDashboardInner = ({
   const hasModal = modal !== null;
   const isFocused = (key: 0 | 1) => (hasModal ? false : key === focused);
 
-  // TODO: add bottom hint for horizontal navigation
   return (
-    <>
-      {selectedDeployment ? (
-        <box flexDirection='row' height='100%' width='100%'>
-          <DeploymentDetails
-            deployment={selectedDeployment}
-            focused={isFocused(0)}
-            getFocus={() => setFocused(0)}
-            onDeploymentUnselect={onDeploymentUnselect}
-          />
-          <DeploymentLogs
-            deployment={selectedDeployment}
-            focused={isFocused(1)}
-            getFocus={() => setFocused(1)}
-            onDeploymentUnselect={onDeploymentUnselect}
-          />
-        </box>
-      ) : (
-        <box flexDirection='row' height='100%' width='100%'>
-          <BranchList
-            branches={branches}
-            focused={isFocused(0)}
-            getFocus={() => setFocused(0)}
-            onSelectBranch={onBranchSelect}
-            selectedBranch={selectedBranch}
-          />
-          <DeploymentsList
-            deployments={filteredDeployments}
-            focused={isFocused(1)}
-            getFocus={() => setFocused(1)}
-            onDeploymentSelect={onDeploymentSelect}
-          />
-        </box>
-      )}
-    </>
+    <box flexDirection='column' height='100%' width='100%'>
+      <box flexDirection='row' flexGrow={1} minHeight={0} width='100%'>
+        {selectedDeployment ? (
+          <>
+            <DeploymentDetails
+              deployment={selectedDeployment}
+              focused={isFocused(0)}
+              getFocus={() => setFocused(0)}
+              onDeploymentUnselect={onDeploymentUnselect}
+            />
+            <DeploymentLogs
+              deployment={selectedDeployment}
+              focused={isFocused(1)}
+              getFocus={() => setFocused(1)}
+              onDeploymentUnselect={onDeploymentUnselect}
+            />
+          </>
+        ) : (
+          <>
+            <BranchList
+              branches={branches}
+              focused={isFocused(0)}
+              getFocus={() => setFocused(0)}
+              onSelectBranch={onBranchSelect}
+              selectedBranch={selectedBranch}
+            />
+            <DeploymentsList
+              deployments={filteredDeployments}
+              focused={isFocused(1)}
+              getFocus={() => setFocused(1)}
+              onDeploymentSelect={onDeploymentSelect}
+            />
+          </>
+        )}
+      </box>
+
+      <StatusBar
+        deploymentsCount={filteredDeployments.length}
+        isRefreshing={isRefreshing}
+        lastRefreshedAt={lastRefreshedAt}
+        selectedBranch={selectedBranch}
+        totalDeploymentsCount={deployments.length}
+        view={selectedDeployment ? 'details' : 'list'}
+      />
+    </box>
   );
 };
 
