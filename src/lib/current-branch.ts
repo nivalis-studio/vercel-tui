@@ -5,6 +5,7 @@ export const getCurrentBranch = (): string | undefined => {
     return execSync('git rev-parse --abbrev-ref HEAD', {
       encoding: 'utf8',
       stdio: ['pipe', 'pipe', 'ignore'],
+      timeout: 2000,
     }).trim();
   } catch {
     return;
